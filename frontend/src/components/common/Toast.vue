@@ -30,6 +30,14 @@ function dismiss(id: number) {
 function show(nextType: ToastType, nextMessage: string, duration = 3000, showProgress = false) {
   if (toasts.length >= MAX_TOASTS) toasts.shift()
 
+  if (nextType === 'success') {
+    logStore.markSuccess(nextMessage)
+  } else if (nextType === 'error') {
+    logStore.markError(nextMessage)
+  } else {
+    logStore.markInfo(nextMessage)
+  }
+
   const id = nextId++
   toasts.push({
     id,

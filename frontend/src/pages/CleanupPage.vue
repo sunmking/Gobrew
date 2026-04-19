@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RefreshCw, Trash2 } from 'lucide-vue-next'
+import { RefreshCw, Trash2, Loader2 } from 'lucide-vue-next'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
 import { useLogStore } from '@/stores/log'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import LoadingInline from '@/components/common/LoadingInline.vue'
+import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
 import Toast from '@/components/common/Toast.vue'
 
 const props = withDefaults(
@@ -169,8 +171,9 @@ onMounted(async () => {
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
           <h3 class="section-title">{{ t('cleanup.preview') }}</h3>
           <button class="ui-btn ui-btn-danger ui-btn-sm" :disabled="executingCleanup || loading" @click="showCleanupDialog = true">
-            <Trash2 :size="14" />
-            {{ t('cleanup.execute') }}
+            <Trash2 v-if="!executingCleanup" :size="14" />
+            <Loader2 v-else :size="14" class="ui-spinner" />
+            {{ executingCleanup ? t('common.loading') : t('cleanup.execute') }}
           </button>
         </div>
         <input
@@ -180,7 +183,9 @@ onMounted(async () => {
           class="ui-input"
           style="width:100%; margin-top:8px;"
         />
-        <div v-if="loading" style="margin-top:12px; font-size:13px; color:var(--color-text-tertiary);">{{ t('common.loading') }}</div>
+        <div v-if="loading" style="margin-top:12px;">
+          <LoadingSkeleton :rows="4" :show-header="false" />
+        </div>
         <div v-else-if="error" style="margin-top:12px; padding:12px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">{{ error }}</div>
         <div v-else-if="previewLines.length > 0" class="card-group" style="margin-top:12px;">
           <div v-for="(line, i) in previewLines" :key="i" class="card-row" style="font-family:var(--font-mono); font-size:12px;">
@@ -195,8 +200,9 @@ onMounted(async () => {
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
           <h3 class="section-title">{{ t('cleanup.autoremovePreview') }}</h3>
           <button class="ui-btn ui-btn-primary ui-btn-sm" :disabled="executingAutoremove || autoremoveLoading" @click="showAutoremoveDialog = true">
-            <Trash2 :size="14" />
-            {{ t('cleanup.autoremove') }}
+            <Trash2 v-if="!executingAutoremove" :size="14" />
+            <Loader2 v-else :size="14" class="ui-spinner" />
+            {{ executingAutoremove ? t('common.loading') : t('cleanup.autoremove') }}
           </button>
         </div>
         <input
@@ -206,7 +212,9 @@ onMounted(async () => {
           class="ui-input"
           style="width:100%; margin-top:8px;"
         />
-        <div v-if="autoremoveLoading" style="margin-top:12px; font-size:13px; color:var(--color-text-tertiary);">{{ t('common.loading') }}</div>
+        <div v-if="autoremoveLoading" style="margin-top:12px;">
+          <LoadingInline />
+        </div>
         <div v-else-if="autoremoveError" style="margin-top:12px; padding:12px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">{{ autoremoveError }}</div>
         <div v-else-if="autoremoveLines.length > 0" class="card-group" style="margin-top:12px;">
           <div v-for="(line, i) in autoremoveLines" :key="i" class="card-row" style="font-family:var(--font-mono); font-size:12px;">

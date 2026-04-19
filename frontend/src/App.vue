@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
+import OperationStatusBar from '@/components/common/OperationStatusBar.vue'
 import { useInstalledStore } from '@/stores/installed'
 import { useUpdateStore } from '@/stores/update'
 
@@ -22,5 +23,6 @@ onMounted(async () => {
         </Transition>
       </router-view>
     </main>
+    <OperationStatusBar />
   </div>
 </template>

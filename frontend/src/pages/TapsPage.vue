@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Plus, Trash2, RefreshCw, Info, Download, ArrowUpCircle } from 'lucide-vue-next'
+import { Plus, Trash2, RefreshCw, Info, Download, ArrowUpCircle, Loader2 } from 'lucide-vue-next'
 import * as TapService from '../../bindings/changeme/services/tapservice.js'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
 import { useTapsStore } from '@/stores/taps'
@@ -13,6 +13,8 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Toast from '@/components/common/Toast.vue'
 import BulkActionBar from '@/components/common/BulkActionBar.vue'
 import BulkResultSummary from '@/components/common/BulkResultSummary.vue'
+import LoadingInline from '@/components/common/LoadingInline.vue'
+import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
 import PackageIcon from '@/components/icons/PackageIcon.vue'
 import type { TapDetail } from '@/types/brew'
 
@@ -344,10 +346,12 @@ onMounted(() => {
         <button
           type="submit"
           class="ui-btn ui-btn-primary ui-btn-sm"
+          :class="{ 'is-loading': addingTap }"
           :disabled="addingTap || !newTapName.trim()"
         >
-          <Plus :size="14" :class="addingTap ? 'is-spinning' : ''" />
-          {{ addingTap ? `${t('common.loading')}` : t('taps.add') }}
+          <Plus v-if="!addingTap" :size="14" />
+          <Loader2 v-else :size="14" class="ui-spinner" />
+          {{ addingTap ? t('common.loading') : t('taps.add') }}
         </button>
       </form>
       <input
@@ -362,9 +366,7 @@ onMounted(() => {
     <div class="flex-1 min-h-0 overflow-y-auto">
       <BulkResultSummary :summary="bulkSummary" />
 
-      <div v-if="tapsStore.loading" style="font-size:13px; color:var(--color-text-tertiary);">
-        {{ t('common.loading') }}
-      </div>
+      <LoadingSkeleton v-if="tapsStore.loading" :rows="5" />
 
       <div v-else-if="tapsStore.error" style="padding:12px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">
         {{ tapsStore.error }}
@@ -383,9 +385,11 @@ onMounted(() => {
         >
           <button
             class="btn-danger"
+            :class="{ 'is-loading': bulkRemoving }"
             :disabled="selection.selectedCount.value === 0 || bulkRemoving"
             @click="removeSelected"
           >
+            <Loader2 v-if="bulkRemoving" :size="13" class="ui-spinner" />
             {{ bulkRemoving ? t('common.loading') : t('taps.remove') }}
           </button>
         </BulkActionBar>
@@ -502,7 +506,9 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="infoLoading" style="margin-top:12px; font-size:13px; color:var(--color-text-tertiary);">{{ t('common.loading') }}</div>
+            <div v-if="infoLoading" style="margin-top:12px;">
+              <LoadingInline />
+            </div>
             <div v-else-if="infoError" style="margin-top:12px; padding:10px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">{{ infoError }}</div>
             <div v-else-if="filteredTapPackages.length === 0" style="margin-top:12px; font-size:13px; color:var(--color-text-tertiary);">{{ t('common.noPackages') }}</div>
             <div v-else style="margin-top:12px; flex:1; min-height:0; overflow-y:auto;">

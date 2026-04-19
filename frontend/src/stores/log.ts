@@ -3,16 +3,62 @@ import { Events } from '@wailsio/runtime'
 import type { LogLine } from '@/types/brew'
 
 let lineId = 1
+const ERROR_RE = /\b(error|failed|failure|panic)\b/i
 
 export const useLogStore = defineStore('log', {
   state: () => ({
     lines: [] as LogLine[],
     listening: false,
+    activeSessions: 0,
     stopFns: [] as Array<() => void>,
     maxLines: 1000,
+    operationStatus: 'idle' as 'idle' | 'running' | 'success' | 'error' | 'info',
+    operationMessage: '',
+    clearTimer: null as ReturnType<typeof setTimeout> | null,
   }),
   actions: {
-    startListening() {
+    setOperation(status: 'idle' | 'running' | 'success' | 'error' | 'info', message = '') {
+      this.operationStatus = status
+      this.operationMessage = message
+    },
+    scheduleClear(ms: number) {
+      if (this.clearTimer) {
+        clearTimeout(this.clearTimer)
+      }
+      this.clearTimer = setTimeout(() => {
+        this.clearOperationStatus()
+      }, ms)
+    },
+    markRunning(message = '') {
+      if (this.clearTimer) {
+        clearTimeout(this.clearTimer)
+        this.clearTimer = null
+      }
+      this.setOperation('running', message)
+    },
+    markSuccess(message = '') {
+      this.setOperation('success', message)
+      this.scheduleClear(2600)
+    },
+    markError(message = '') {
+      this.setOperation('error', message)
+      this.scheduleClear(5200)
+    },
+    markInfo(message = '') {
+      this.setOperation('info', message)
+      this.scheduleClear(3200)
+    },
+    clearOperationStatus() {
+      if (this.clearTimer) {
+        clearTimeout(this.clearTimer)
+        this.clearTimer = null
+      }
+      this.setOperation('idle', '')
+    },
+    startListening(message = '') {
+      this.activeSessions += 1
+      this.markRunning(message)
+
       if (this.listening) return
       this.listening = true
 
@@ -37,14 +83,25 @@ export const useLogStore = defineStore('log', {
           type: 'system',
           timestamp: Date.now(),
         })
+        if (ERROR_RE.test(text)) {
+          this.markError(text)
+        } else {
+          this.markSuccess(text)
+        }
       })
 
       this.stopFns = [offOutput, offComplete]
     },
     stopListening() {
+      this.activeSessions = Math.max(0, this.activeSessions - 1)
+      if (this.activeSessions > 0) return
+
       this.stopFns.forEach((fn) => fn())
       this.stopFns = []
       this.listening = false
+      if (this.operationStatus === 'running') {
+        this.markSuccess('')
+      }
     },
     clear() {
       this.lines = []

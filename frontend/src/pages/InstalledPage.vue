@@ -12,6 +12,7 @@ import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import Toast from '@/components/common/Toast.vue'
 import BulkActionBar from '@/components/common/BulkActionBar.vue'
 import BulkResultSummary from '@/components/common/BulkResultSummary.vue'
+import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
 import PackageInfoDialog from '@/components/common/PackageInfoDialog.vue'
 import PackageIcon from '@/components/icons/PackageIcon.vue'
 import type { InfoRow } from '@/components/common/PackageInfoDialog.vue'
@@ -270,9 +271,7 @@ onMounted(() => {
     <div class="flex-1 min-h-0 overflow-y-auto">
       <BulkResultSummary :summary="bulkSummary" />
 
-      <div v-if="installedStore.loading" style="font-size:13px; color:var(--color-text-tertiary);">
-        {{ t('common.loading') }}
-      </div>
+      <LoadingSkeleton v-if="installedStore.loading" :rows="5" />
 
       <div v-else-if="installedStore.error" style="padding:12px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">
         {{ installedStore.error }}

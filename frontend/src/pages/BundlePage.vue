@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Save, Download, CheckCircle, RefreshCw, Wrench } from 'lucide-vue-next'
+import { Save, Download, CheckCircle, RefreshCw, Wrench, Loader2 } from 'lucide-vue-next'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
 import { useBundleStore } from '@/stores/bundle'
 import { useLogStore } from '@/stores/log'
@@ -10,6 +10,7 @@ import { useSelection } from '@/composables/useSelection'
 import { runBulk } from '@/composables/useBulkRunner'
 import type { BulkSummary } from '@/types/bulk'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import LoadingInline from '@/components/common/LoadingInline.vue'
 import Toast from '@/components/common/Toast.vue'
 import BulkActionBar from '@/components/common/BulkActionBar.vue'
 import BulkResultSummary from '@/components/common/BulkResultSummary.vue'
@@ -215,10 +216,12 @@ onMounted(async () => {
         <div class="action-bar">
           <button
             class="ui-btn ui-btn-primary ui-btn-sm"
+            :class="{ 'is-loading': dumping }"
             :disabled="dumping"
             @click="dump"
           >
-            <Save :size="14" :class="dumping ? 'is-spinning' : ''" />
+            <Save v-if="!dumping" :size="14" />
+            <Loader2 v-else :size="14" class="ui-spinner" />
             {{ dumping ? t('common.loading') : t('bundle.dump') }}
           </button>
           <button
@@ -283,10 +286,12 @@ onMounted(async () => {
               <button
                 class="btn-primary"
                 style="display:inline-flex; align-items:center; gap:4px;"
+                :class="{ 'is-loading': installingMissing }"
                 :disabled="selection.selectedCount.value === 0 || installingMissing"
                 @click="installSelectedMissing"
               >
-                <Wrench :size="12" />
+                <Wrench v-if="!installingMissing" :size="12" />
+                <Loader2 v-else :size="12" class="ui-spinner" />
                 {{ installingMissing ? t('common.loading') : t('bundle.installSelected') }}
               </button>
             </BulkActionBar>
@@ -322,7 +327,8 @@ onMounted(async () => {
           {{ bundleStore.cleanupPreviewResult.output }}
         </div>
         <div v-else style="font-size:13px; color:var(--color-text-tertiary);">
-          {{ t('bundle.noCleanupPreview') }}
+          <LoadingInline v-if="cleanupPreviewLoading" />
+          <span v-else>{{ t('bundle.noCleanupPreview') }}</span>
         </div>
       </div>
     </div>

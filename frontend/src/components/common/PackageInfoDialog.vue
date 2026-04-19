@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import LoadingInline from '@/components/common/LoadingInline.vue'
 
 export interface InfoRow {
   label: string
@@ -31,7 +32,7 @@ const { t } = useI18n()
         </div>
 
         <div class="info-content mt-3 max-h-[60vh] overflow-y-auto rounded-lg p-3">
-          <div v-if="loading" class="info-muted text-sm">{{ t('common.loading') }}</div>
+          <div v-if="loading" class="info-muted text-sm"><LoadingInline compact /></div>
           <div v-else-if="error" class="info-error rounded-md p-2 text-sm">{{ error }}</div>
           <div v-else-if="rows.length === 0" class="info-muted text-sm">{{ t('common.noDetails') }}</div>
           <dl v-else class="space-y-2">

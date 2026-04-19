@@ -11,6 +11,7 @@ import type { BulkSummary } from '@/types/bulk'
 import Toast from '@/components/common/Toast.vue'
 import BulkActionBar from '@/components/common/BulkActionBar.vue'
 import BulkResultSummary from '@/components/common/BulkResultSummary.vue'
+import LoadingSkeleton from '@/components/common/LoadingSkeleton.vue'
 import PackageIcon from '@/components/icons/PackageIcon.vue'
 
 const props = withDefaults(
@@ -172,9 +173,7 @@ onMounted(() => {
     <div class="flex-1 min-h-0 overflow-y-auto">
       <BulkResultSummary :summary="bulkSummary" />
 
-      <div v-if="servicesStore.loading" style="font-size:13px; color:var(--color-text-tertiary);">
-        {{ t('common.loading') }}
-      </div>
+      <LoadingSkeleton v-if="servicesStore.loading" :rows="5" />
 
       <div v-else-if="servicesStore.error" style="padding:12px; border-radius:var(--radius-sm); background:var(--color-danger-light); color:var(--color-danger); font-size:13px;">
         {{ servicesStore.error }}

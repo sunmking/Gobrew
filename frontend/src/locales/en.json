@@ -193,7 +193,12 @@
     "refresh": "Refresh",
     "loadMore": "Load more",
     "installed": "Installed",
-    "outdated": "Outdated"
+    "outdated": "Outdated",
+    "operationRunning": "Operation in progress",
+    "operationSuccess": "Operation completed",
+    "operationError": "Operation failed",
+    "operationInfo": "Operation update",
+    "operationNoDetails": "No additional details"
   },
   "statusBar": {
     "syncing": "Syncing Homebrew data",

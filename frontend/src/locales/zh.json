@@ -193,7 +193,12 @@
     "refresh": "刷新",
     "loadMore": "加载更多",
     "installed": "已安装",
-    "outdated": "待更新"
+    "outdated": "待更新",
+    "operationRunning": "操作进行中",
+    "operationSuccess": "操作已完成",
+    "operationError": "操作失败",
+    "operationInfo": "操作状态更新",
+    "operationNoDetails": "暂无更多详情"
   },
   "statusBar": {
     "syncing": "正在同步 Homebrew 数据",
