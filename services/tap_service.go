@@ -70,28 +70,20 @@ func (t *TapService) List(ctx context.Context) ([]TapResult, error) {
 func (t *TapService) Add(ctx context.Context, name string) error {
 	_, stderr, err := runBrewCommandWithEvents(ctx, t.app, "tap", name)
 	if err != nil {
-		if t.app != nil {
-			t.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s"}`, stderr))
-		}
+		emitBrewComplete(t.app, false, stderr, 0)
 		return &BrewError{Code: "TAP_ADD_FAILED", Message: "Failed to add tap " + name, Details: stderr}
 	}
-	if t.app != nil {
-		t.app.Event.Emit("brew-complete", `{"success":true}`)
-	}
+	emitBrewComplete(t.app, true, "", 0)
 	return nil
 }
 
 func (t *TapService) Remove(ctx context.Context, name string) error {
 	_, stderr, err := runBrewCommandWithEvents(ctx, t.app, "untap", name)
 	if err != nil {
-		if t.app != nil {
-			t.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s"}`, stderr))
-		}
+		emitBrewComplete(t.app, false, stderr, 0)
 		return &BrewError{Code: "TAP_REMOVE_FAILED", Message: "Failed to remove tap " + name, Details: stderr}
 	}
-	if t.app != nil {
-		t.app.Event.Emit("brew-complete", `{"success":true}`)
-	}
+	emitBrewComplete(t.app, true, "", 0)
 	return nil
 }
 
@@ -167,17 +159,13 @@ func (t *TapService) PackageAction(ctx context.Context, packageType, name, actio
 
 	_, stderr, err := runBrewCommandWithEvents(ctx, t.app, args...)
 	if err != nil {
-		if t.app != nil {
-			t.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s"}`, stderr))
-		}
+		emitBrewComplete(t.app, false, stderr, 0)
 		return &BrewError{
 			Code:    "TAP_PACKAGE_ACTION_FAILED",
 			Message: fmt.Sprintf("Failed to %s %s", actionName, pkgName),
 			Details: stderr,
 		}
 	}
-	if t.app != nil {
-		t.app.Event.Emit("brew-complete", `{"success":true}`)
-	}
+	emitBrewComplete(t.app, true, "", 0)
 	return nil
 }

@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -150,16 +149,7 @@ func (b *BundleService) ReadBrewfile(filePath string) (string, error) {
 }
 
 func (b *BundleService) emitComplete(success bool, details string, start time.Time) {
-	if b.app == nil {
-		return
-	}
-	duration := time.Since(start).String()
-	if success {
-		b.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":true,"duration":"%s"}`, duration))
-		return
-	}
-	esc := strings.ReplaceAll(details, `"`, `'`)
-	b.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s","duration":"%s"}`, esc, duration))
+	emitBrewComplete(b.app, success, details, time.Since(start))
 }
 
 func parseMissingDependencies(stdout, stderr string) []string {

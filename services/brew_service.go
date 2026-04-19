@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -393,16 +392,7 @@ func (b *BrewService) Doctor(ctx context.Context) (*CommandResult, error) {
 }
 
 func (b *BrewService) emitComplete(success bool, details string, start time.Time) {
-	if b.app == nil {
-		return
-	}
-	duration := time.Since(start).String()
-	if success {
-		b.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":true,"duration":"%s"}`, duration))
-		return
-	}
-	esc := strings.ReplaceAll(details, `"`, `'`)
-	b.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s","duration":"%s"}`, esc, duration))
+	emitBrewComplete(b.app, success, details, time.Since(start))
 }
 
 func parseFormulaListJSON(stdout string) ([]FormulaInfo, error) {

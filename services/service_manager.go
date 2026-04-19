@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -85,13 +84,9 @@ func (s *ServiceManager) Cleanup(ctx context.Context) error {
 func (s *ServiceManager) runServiceCommand(ctx context.Context, code, message string, args ...string) error {
 	_, stderr, err := runBrewCommandWithEvents(ctx, s.app, args...)
 	if err != nil {
-		if s.app != nil {
-			s.app.Event.Emit("brew-complete", fmt.Sprintf(`{"success":false,"error":"%s"}`, stderr))
-		}
+		emitBrewComplete(s.app, false, stderr, 0)
 		return &BrewError{Code: code, Message: message, Details: stderr}
 	}
-	if s.app != nil {
-		s.app.Event.Emit("brew-complete", `{"success":true}`)
-	}
+	emitBrewComplete(s.app, true, "", 0)
 	return nil
 }

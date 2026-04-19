@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -112,4 +113,29 @@ func streamPipe(pipe interface{ Read([]byte) (int, error) }, dst *strings.Builde
 		}
 	}
 	close(done)
+}
+
+func emitBrewComplete(app *application.App, success bool, details string, duration time.Duration) {
+	if app == nil {
+		return
+	}
+
+	trimmed := strings.TrimSpace(details)
+	if success {
+		if duration > 0 {
+			app.Event.Emit("brew-complete", fmt.Sprintf("success (%s)", duration.String()))
+			return
+		}
+		app.Event.Emit("brew-complete", "success")
+		return
+	}
+
+	if trimmed == "" {
+		trimmed = "command failed"
+	}
+	if duration > 0 {
+		app.Event.Emit("brew-complete", fmt.Sprintf("failed (%s): %s", duration.String(), trimmed))
+		return
+	}
+	app.Event.Emit("brew-complete", "failed: "+trimmed)
 }
