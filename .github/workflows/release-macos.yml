@@ -1,0 +1,95 @@
+name: Release macOS Installer
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (example: v1.0.0)."
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    env:
+      APP_NAME: Gobrew
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Task
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/go-task/task/v3/cmd/task@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+
+      - name: Install frontend dependencies
+        run: npm --prefix frontend ci
+
+      - name: Build app bundle
+        run: task package
+
+      - name: Package DMG and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+
+          RELEASE_TAG="${{ github.ref_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          fi
+
+          APP_PATH="bin/${APP_NAME}.app"
+          if [ ! -d "${APP_PATH}" ]; then
+            echo "Missing app bundle: ${APP_PATH}" >&2
+            exit 1
+          fi
+
+          DMG_NAME="${APP_NAME}-${RELEASE_TAG}-macos.dmg"
+          ZIP_NAME="${APP_NAME}-${RELEASE_TAG}-macos.zip"
+
+          hdiutil create -volname "${APP_NAME}" -srcfolder "${APP_PATH}" -ov -format UDZO "dist/${DMG_NAME}"
+          ditto -c -k --keepParent "${APP_PATH}" "dist/${ZIP_NAME}"
+
+          shasum -a 256 "dist/${DMG_NAME}" > "dist/${DMG_NAME}.sha256"
+          shasum -a 256 "dist/${ZIP_NAME}" > "dist/${ZIP_NAME}.sha256"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: macos-installer
+          path: dist/*
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          files: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.sha256

@@ -1,0 +1,275 @@
+{
+  "app": {
+    "name": "Gobrew",
+    "search": "搜索 formula/cask..."
+  },
+  "nav": {
+    "home": "首页",
+    "installed": "已安装",
+    "explore": "浏览",
+    "update": "更新",
+    "services": "服务",
+    "taps": "源",
+    "cleanup": "清理",
+    "bundle": "Bundle"
+  },
+  "domains": {
+    "dashboard": {
+      "label": "仪表盘",
+      "title": "仪表盘",
+      "description": "快速查看你的 Homebrew 环境概览。"
+    },
+    "install": {
+      "label": "安装",
+      "title": "安装",
+      "description": "浏览、发现并添加 formula 或 cask。"
+    },
+    "upgrade": {
+      "label": "升级",
+      "title": "升级",
+      "description": "跟踪过期软件包并让系统保持最新。"
+    },
+    "maintain": {
+      "label": "维护",
+      "title": "维护",
+      "description": "管理 taps、清理流程和 bundle 工作流。"
+    },
+    "services": {
+      "label": "服务",
+      "title": "服务",
+      "description": "管理 Homebrew 服务。"
+    }
+  },
+  "sidebar": {
+    "primaryNav": "主导航",
+    "poweredBy": "由 Homebrew 提供支持"
+  },
+  "home": {
+    "title": "仪表盘",
+    "outdated": "可用更新",
+    "installed": "已安装包",
+    "lastUpdate": "上次更新",
+    "quickActions": "快捷操作",
+    "updateAll": "全部更新",
+    "cleanup": "清理",
+    "allUpgraded": "所有包已升级",
+    "cleanupDone": "清理完成",
+    "quickStatus": "快速状态",
+    "quickStatusDesc": "系统健康",
+    "doctorHealthy": "健康",
+    "doctorIssues": "发现问题",
+    "runDoctor": "运行诊断",
+    "doctorOk": "brew doctor 未发现问题"
+  },
+  "installed": {
+    "title": "已安装",
+    "formulae": "Formula",
+    "casks": "Cask",
+    "search": "搜索已安装...",
+    "uninstall": "卸载",
+    "upgrade": "升级",
+    "info": "详情",
+    "confirmUninstall": "确认卸载 {name}？",
+    "confirmUpgradeSingle": "确认升级 {name}？",
+    "confirmUninstallMulti": "确认卸载选中的 {count} 个包？",
+    "confirmUpgradeMulti": "确认升级选中的 {count} 个包？",
+    "pinned": "已锁定",
+    "installedOnRequest": "主动安装",
+    "installedAsDep": "依赖安装"
+  },
+  "explore": {
+    "title": "浏览",
+    "search": "搜索包...",
+    "searchBtn": "搜索",
+    "install": "安装",
+    "info": "详情",
+    "noResults": "未找到结果"
+  },
+  "update": {
+    "title": "更新",
+    "outdated": "待更新",
+    "brewUpdate": "brew 更新",
+    "upgradeAll": "全部升级",
+    "upgrade": "升级",
+    "upToDate": "所有包已是最新！",
+    "confirmUpgradeAll": "确认升级所有过期包？"
+  },
+  "services": {
+    "title": "服务",
+    "start": "启动",
+    "stop": "停止",
+    "restart": "重启",
+    "running": "运行中",
+    "stopped": "已停止",
+    "error": "异常",
+    "noServices": "没有 brew 服务",
+    "startAll": "启动全部",
+    "stopAll": "停止全部",
+    "restartAll": "重启全部",
+    "cleanup": "清理",
+    "cleanupDone": "服务清理完成"
+  },
+  "taps": {
+    "title": "Tap 源",
+    "add": "添加 Tap",
+    "repoPlaceholder": "user/repo",
+    "remove": "移除",
+    "confirmRemove": "确认移除 tap {name}？",
+    "noTaps": "没有 tap",
+    "formulaeCount": "Formula ({count})",
+    "casksCount": "Cask ({count})",
+    "detail": {
+      "remote": "远程地址",
+      "branch": "分支",
+      "lastCommit": "最近提交",
+      "customRemote": "自定义远程"
+    }
+  },
+  "cleanup": {
+    "title": "清理",
+    "preview": "预览清理",
+    "execute": "执行清理",
+    "confirmExecute": "将移除过期和未使用的包文件，是否继续？",
+    "autoremove": "执行 Autoremove",
+    "autoremovePreview": "预览 Autoremove",
+    "filterAutoremove": "筛选 autoremove 内容...",
+    "confirmAutoremove": "将移除不再需要的依赖，是否继续？",
+    "autoremoveDone": "Autoremove 完成",
+    "noAutoremove": "没有可 autoremove 的依赖",
+    "reclaimable": "可回收空间",
+    "noCleanup": "无需清理"
+  },
+  "bundle": {
+    "title": "Bundle",
+    "dump": "导出 Brewfile",
+    "restore": "从 Brewfile 恢复",
+    "check": "检查 Brewfile",
+    "cleanup": "Bundle 清理",
+    "cleanupPreview": "清理预览",
+    "confirmCleanup": "是否移除 Brewfile 中未声明的包？",
+    "forceCleanup": "强制清理（不再提示）",
+    "cleanupDone": "Bundle 清理完成",
+    "noCleanupPreview": "暂无清理预览",
+    "brewfile": "Brewfile",
+    "brewfilePath": "Brewfile 路径",
+    "selectFile": "选择 Brewfile",
+    "allUpToDate": "所有依赖已满足",
+    "missing": "缺失的依赖",
+    "confirmRestore": "从 Brewfile 恢复所有依赖？",
+    "installSelected": "安装所选",
+    "noBrewfile": "未找到 Brewfile。点击「导出」创建一个。"
+  },
+  "bulk": {
+    "selected": "已选择",
+    "total": "总计",
+    "selectAll": "全选",
+    "clear": "清空",
+    "succeeded": "成功",
+    "failed": "失败",
+    "showDetails": "展开详情",
+    "hideDetails": "收起详情",
+    "reasonUnknown": "未知错误"
+  },
+  "placeholders": {
+    "searchServices": "搜索服务...",
+    "searchTaps": "搜索 tap...",
+    "filterBrewfile": "筛选 Brewfile 内容...",
+    "filterPreview": "筛选预览内容...",
+    "filterPackages": "筛选包..."
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "confirm": "确认",
+    "close": "关闭",
+    "yes": "是",
+    "no": "否",
+    "domainViews": "域视图",
+    "language": "语言",
+    "noPackages": "暂无包",
+    "noDetails": "暂无详情",
+    "refresh": "刷新",
+    "loadMore": "加载更多",
+    "installed": "已安装",
+    "outdated": "待更新"
+  },
+  "statusBar": {
+    "syncing": "正在同步 Homebrew 数据",
+    "inventory": "Homebrew 清单"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "languageDesc": "选择界面语言",
+    "brewPath": "Homebrew 路径",
+    "brewPathDesc": "自定义 brew 可执行文件路径（留空使用默认值）",
+    "brewPathPlaceholder": "/opt/homebrew/bin/brew",
+    "brewFilePath": "Brewfile 路径",
+    "brewFilePathDesc": "Brewfile 导出/恢复的默认路径（留空使用 ~/Brewfile）",
+    "brewFilePathPlaceholder": "~/Brewfile",
+    "autoUpdate": "自动更新检查",
+    "autoUpdateDesc": "自动检查 Homebrew 更新",
+    "theme": "主题",
+    "themeDesc": "选择应用主题",
+    "themeDark": "暗色",
+    "themeLight": "亮色",
+    "saved": "设置已保存"
+  },
+  "log": {
+    "showLogs": "显示日志",
+    "hideLogs": "隐藏日志",
+    "clear": "清空"
+  },
+  "searchPalette": {
+    "placeholder": "搜索包和操作...",
+    "noResults": "未找到结果",
+    "typeHint": "输入以搜索包和操作",
+    "navigate": "↑↓ 导航",
+    "select": "↵ 选择",
+    "toggle": "⌘K 切换"
+  },
+  "messages": {
+    "noLogsYet": "暂无日志",
+    "operationFailed": "操作失败",
+    "upgradeFailed": "升级失败",
+    "cleanupFailed": "清理失败",
+    "cleanupComplete": "清理完成",
+    "autoremoveFailed": "Autoremove 失败",
+    "failedLoadCleanupPreview": "加载清理预览失败",
+    "failedLoadAutoremovePreview": "加载 autoremove 预览失败",
+    "dumpFailed": "导出失败",
+    "restoreFailed": "恢复失败",
+    "checkFailed": "检查失败",
+    "cleanupPreviewFailed": "加载清理预览失败",
+    "doctorFoundIssues": "Doctor 发现问题",
+    "installedName": "{name} 安装成功",
+    "upgradedName": "{name} 升级成功",
+    "reinstalledName": "{name} 重装成功",
+    "installFailed": "安装失败",
+    "reinstallFailed": "重装失败",
+    "allPackagesUpgraded": "所有包已升级",
+    "brewUpdateCompleted": "brew 更新完成",
+    "brewUpdateFailed": "brew 更新失败",
+    "bulkUpgrade": "批量升级",
+    "bulkUninstall": "批量卸载",
+    "bulkActionLabel": "批量{action}",
+    "bulkProcessedSummary": "{success}/{total} 已处理",
+    "bulkUpgradedSummary": "{success}/{total} 已升级",
+    "bulkInstalledSummary": "{success}/{total} 已安装",
+    "bulkRemovedSummary": "{success}/{total} 已移除",
+    "bulkActionSummary": "{success}/{total} {action}",
+    "bulkProcessedPackages": "已处理 {count} 个包",
+    "bulkFailedPackages": "失败 {count} 个包",
+    "serviceActionDone": "{name} {action} 完成",
+    "tapAdded": "Tap {name} 已添加",
+    "tapRemoved": "Tap {name} 已移除",
+    "failedAddTap": "添加 tap 失败",
+    "failedRemoveTap": "移除 tap 失败",
+    "failedLoadTapDetails": "加载 tap 详情失败",
+    "bulkRemoveTaps": "批量移除 Tap",
+    "packageActionDone": "{action} {name} 完成",
+    "packageActionFailed": "{action} 失败"
+  }
+}

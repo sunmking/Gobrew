@@ -1,0 +1,34 @@
+import { defineStore } from 'pinia'
+import * as TapService from '../../bindings/changeme/services/tapservice.js'
+import type { TapInfo } from '@/types/brew'
+
+export const useTapsStore = defineStore('taps', {
+  state: () => ({
+    taps: [] as TapInfo[],
+    loading: false,
+    error: '',
+  }),
+  actions: {
+    async fetchTaps() {
+      if (this.loading) return
+      this.loading = true
+      this.error = ''
+      try {
+        const result = await TapService.List()
+        this.taps = (result as unknown) as TapInfo[]
+      } catch (error: any) {
+        this.error = error?.message || 'Failed to fetch taps'
+      } finally {
+        this.loading = false
+      }
+    },
+    async add(name: string) {
+      await TapService.Add(name)
+      await this.fetchTaps()
+    },
+    async remove(name: string) {
+      await TapService.Remove(name)
+      await this.fetchTaps()
+    },
+  },
+})
