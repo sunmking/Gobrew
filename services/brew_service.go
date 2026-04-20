@@ -251,6 +251,9 @@ func (b *BrewService) Update(ctx context.Context) error {
 	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, "update")
 	b.emitComplete(err == nil, stderr, start)
 	if err != nil {
+		if isBrewUpdateLocked(stderr) {
+			return &BrewError{Code: "BREW_BUSY", Message: "Homebrew update is already running", Details: stderr}
+		}
 		return &BrewError{Code: "UPDATE_FAILED", Message: "Failed to update Homebrew", Details: stderr}
 	}
 	return nil
@@ -653,6 +656,11 @@ func parseKegInfos(v any) []KegInfo {
 func containsUnsupportedJSONOption(text string) bool {
 	msg := strings.ToLower(text)
 	return strings.Contains(msg, "invalid option: --json=v2") || strings.Contains(msg, "invalid option: --json")
+}
+
+func isBrewUpdateLocked(text string) bool {
+	msg := strings.ToLower(text)
+	return strings.Contains(msg, "already locked") && strings.Contains(msg, "another `brew update` process is already running")
 }
 
 func stringValue(v any) string {

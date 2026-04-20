@@ -256,6 +256,7 @@
     "reinstallFailed": "Reinstall failed",
     "allPackagesUpgraded": "All packages upgraded",
     "brewUpdateCompleted": "brew update completed",
+    "brewUpdateBusy": "Another brew update is running. Please wait and try again.",
     "brewUpdateFailed": "brew update failed",
     "bulkUpgrade": "Bulk Upgrade",
     "bulkUninstall": "Bulk Uninstall",

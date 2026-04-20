@@ -22,6 +22,7 @@ const selection = useSelection()
 const toastRef = ref<any>(null)
 const upgradeAllOpen = ref(false)
 const bulkSummary = ref<BulkSummary | null>(null)
+const updatingBrew = ref(false)
 
 function sortByName<T extends { name: string }>(items: T[]) {
   return [...items].sort((a, b) => a.name.localeCompare(b.name))
@@ -89,15 +90,23 @@ async function upgradeAll() {
 }
 
 async function runBrewUpdate() {
+  if (updatingBrew.value) return
+  updatingBrew.value = true
   logStore.startListening()
   try {
     await BrewService.Update()
     await updateStore.fetchOutdated()
     toastRef.value?.show('success', t('messages.brewUpdateCompleted'))
   } catch (error: any) {
-    toastRef.value?.show('error', error?.message || t('messages.brewUpdateFailed'))
+    const code = error?.cause?.code || error?.code
+    if (code === 'BREW_BUSY') {
+      toastRef.value?.show('error', t('messages.brewUpdateBusy'))
+    } else {
+      toastRef.value?.show('error', error?.message || t('messages.brewUpdateFailed'))
+    }
   } finally {
     logStore.stopListening()
+    updatingBrew.value = false
   }
 }
 
@@ -113,6 +122,7 @@ onMounted(() => {
       <div class="action-bar">
         <button
           style="background:transparent; color:var(--color-text); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:6px 14px; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;"
+          :disabled="updatingBrew || updateStore.updating"
           @click="runBrewUpdate"
         >
           <RefreshCw :size="14" />

@@ -256,6 +256,7 @@
     "reinstallFailed": "重装失败",
     "allPackagesUpgraded": "所有包已升级",
     "brewUpdateCompleted": "brew 更新完成",
+    "brewUpdateBusy": "已有另一个 brew update 正在运行，请稍后重试。",
     "brewUpdateFailed": "brew 更新失败",
     "bulkUpgrade": "批量升级",
     "bulkUninstall": "批量卸载",
