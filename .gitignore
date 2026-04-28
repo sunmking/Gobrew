@@ -9,6 +9,7 @@ build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 .DS_Store
 .idea/
 .superpowers/
+.worktrees/
 
 # local root build artifact
 changeme
