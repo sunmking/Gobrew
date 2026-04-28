@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import * as BundleService from '../../bindings/changeme/services/bundleservice.js'
+import i18n from '@/locales'
 
 interface BundleCheckResult {
   satisfied: boolean
@@ -29,7 +30,7 @@ export const useBundleStore = defineStore('bundle', {
       try {
         this.brewfileContent = await BundleService.ReadBrewfile(path || '')
       } catch (error: any) {
-        this.error = error?.message || 'Failed to read Brewfile'
+        this.error = error?.message || i18n.global.t('messages.readBrewfileFailed')
         this.brewfileContent = ''
       } finally {
         this.loading = false

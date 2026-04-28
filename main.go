@@ -22,6 +22,7 @@ func main() {
 	tapService := services.NewTapService(nil)
 	serviceManager := services.NewServiceManager(nil)
 	bundleService := services.NewBundleService(nil)
+	configService := services.NewConfigService()
 
 	app := application.New(application.Options{
 		Name:        "Gobrew",
@@ -32,6 +33,7 @@ func main() {
 			application.NewService(tapService),
 			application.NewService(serviceManager),
 			application.NewService(bundleService),
+			application.NewService(configService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

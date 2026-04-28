@@ -130,6 +130,23 @@ type CleanupResult struct {
 	Output        string `json:"output"`
 }
 
+type AppConfig struct {
+	Language             string `json:"language"`
+	Theme                string `json:"theme"`
+	BrewPath             string `json:"brew_path"`
+	BrewfilePath         string `json:"brewfile_path"`
+	AutoUpdateInterval   string `json:"auto_update_interval"`
+	LogMaxLines          int    `json:"log_max_lines"`
+	CheckUpdatesOnLaunch bool   `json:"check_updates_on_launch"`
+}
+
+type BrewPathValidation struct {
+	Path    string `json:"path"`
+	Valid   bool   `json:"valid"`
+	Version string `json:"version"`
+	Error   string `json:"error"`
+}
+
 type BundleCheckResult struct {
 	Satisfied bool     `json:"satisfied"`
 	Missing   []string `json:"missing"`

@@ -1,163 +1,28 @@
 {
-  "app": {
-    "name": "Gobrew",
-    "search": "Search formulae/casks..."
-  },
-  "nav": {
-    "home": "Home",
-    "installed": "Installed",
-    "explore": "Explore",
-    "update": "Update",
-    "services": "Services",
-    "taps": "Taps",
-    "cleanup": "Cleanup",
-    "bundle": "Bundle"
-  },
-  "domains": {
-    "dashboard": {
-      "label": "Dashboard",
-      "title": "Dashboard",
-      "description": "Overview of your Homebrew environment at a glance."
-    },
-    "install": {
-      "label": "Install",
-      "title": "Install",
-      "description": "Browse, discover, and add formulae or casks."
-    },
-    "upgrade": {
-      "label": "Upgrade",
-      "title": "Upgrade",
-      "description": "Track outdated packages and keep everything current."
-    },
-    "maintain": {
-      "label": "Maintain",
-      "title": "Maintain",
-      "description": "Manage taps, cleanup, and bundle workflows."
-    },
-    "services": {
-      "label": "Services",
-      "title": "Services",
-      "description": "Manage Homebrew services."
-    }
-  },
-  "sidebar": {
-    "primaryNav": "Primary",
-    "poweredBy": "Powered by Homebrew"
-  },
   "home": {
-    "title": "Dashboard",
     "outdated": "Updates Available",
-    "installed": "Installed Packages",
-    "lastUpdate": "Last Updated",
-    "quickActions": "Quick Actions",
-    "updateAll": "Update All",
-    "cleanup": "Cleanup",
-    "allUpgraded": "All packages upgraded",
-    "cleanupDone": "Cleanup complete",
-    "quickStatus": "Quick Status",
-    "quickStatusDesc": "System Health",
-    "doctorHealthy": "Healthy",
-    "doctorIssues": "Issues Found",
-    "runDoctor": "Run Doctor",
-    "doctorOk": "brew doctor found no issues"
-  },
-  "installed": {
-    "title": "Installed",
-    "formulae": "Formulae",
-    "casks": "Casks",
-    "search": "Search installed...",
-    "uninstall": "Uninstall",
-    "upgrade": "Upgrade",
-    "info": "Info",
-    "confirmUninstall": "Uninstall {name}?",
-    "confirmUpgradeSingle": "Upgrade {name}?",
-    "confirmUninstallMulti": "Uninstall {count} selected packages?",
-    "confirmUpgradeMulti": "Upgrade {count} selected packages?",
-    "pinned": "Pinned",
-    "installedOnRequest": "Requested",
-    "installedAsDep": "Dependency"
-  },
-  "explore": {
-    "title": "Explore",
-    "search": "Search packages...",
-    "searchBtn": "Search",
-    "install": "Install",
-    "info": "Info",
-    "noResults": "No results found"
+    "installed": "Installed Packages"
   },
   "update": {
-    "title": "Update",
-    "outdated": "Outdated Packages",
-    "brewUpdate": "brew update",
     "upgradeAll": "Upgrade All",
-    "upgrade": "Upgrade",
-    "upToDate": "All packages are up to date!",
-    "confirmUpgradeAll": "Upgrade all outdated packages?"
+    "upToDate": "All packages are up to date!"
   },
   "services": {
-    "title": "Services",
     "start": "Start",
     "stop": "Stop",
     "restart": "Restart",
-    "running": "Running",
-    "stopped": "Stopped",
-    "error": "Error",
     "noServices": "No brew services",
-    "startAll": "Start All",
-    "stopAll": "Stop All",
-    "restartAll": "Restart All",
-    "cleanup": "Cleanup",
-    "cleanupDone": "Services cleanup complete"
+    "restartAll": "Restart All"
   },
   "taps": {
-    "title": "Taps",
     "add": "Add Tap",
-    "repoPlaceholder": "user/repo",
-    "remove": "Remove",
-    "confirmRemove": "Remove tap {name}?",
-    "noTaps": "No taps",
-    "formulaeCount": "Formulae ({count})",
-    "casksCount": "Casks ({count})",
     "detail": {
-      "remote": "Remote",
-      "branch": "Branch",
       "lastCommit": "Last Commit",
       "customRemote": "Custom Remote"
     }
   },
   "cleanup": {
-    "title": "Cleanup",
-    "preview": "Preview Cleanup",
-    "execute": "Execute Cleanup",
-    "confirmExecute": "This will remove outdated and unused package files. Continue?",
-    "autoremove": "Run Autoremove",
-    "autoremovePreview": "Preview Autoremove",
-    "filterAutoremove": "Filter autoremove lines...",
-    "confirmAutoremove": "This removes unneeded dependencies. Continue?",
-    "autoremoveDone": "Autoremove complete",
-    "noAutoremove": "Nothing to autoremove",
-    "reclaimable": "Reclaimable Space",
-    "noCleanup": "Nothing to clean up"
-  },
-  "bundle": {
-    "title": "Bundle",
-    "dump": "Dump Brewfile",
-    "restore": "Restore from Brewfile",
-    "check": "Check Brewfile",
-    "cleanup": "Bundle Cleanup",
-    "cleanupPreview": "Cleanup Preview",
-    "confirmCleanup": "Remove packages not declared in Brewfile?",
-    "forceCleanup": "Force cleanup without prompt",
-    "cleanupDone": "Bundle cleanup complete",
-    "noCleanupPreview": "No cleanup preview yet",
-    "brewfile": "Brewfile",
-    "brewfilePath": "Brewfile Path",
-    "selectFile": "Select Brewfile",
-    "allUpToDate": "All dependencies are satisfied",
-    "missing": "Missing Dependencies",
-    "confirmRestore": "Restore all dependencies from Brewfile?",
-    "installSelected": "Install Selected",
-    "noBrewfile": "No Brewfile found. Click \"Dump\" to create one."
+    "execute": "Execute Cleanup"
   },
   "bulk": {
     "selected": "Selected",
@@ -170,30 +35,17 @@
     "hideDetails": "Hide details",
     "reasonUnknown": "Unknown error"
   },
-  "placeholders": {
-    "searchServices": "Search services...",
-    "searchTaps": "Search taps...",
-    "filterBrewfile": "Filter Brewfile lines...",
-    "filterPreview": "Filter preview lines...",
-    "filterPackages": "Filter packages"
-  },
   "common": {
     "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
     "yes": "Yes",
     "no": "No",
     "domainViews": "Domain views",
-    "language": "Language",
-    "noPackages": "No packages",
     "noDetails": "No details",
     "refresh": "Refresh",
-    "loadMore": "Load more",
     "installed": "Installed",
-    "outdated": "Outdated",
     "operationRunning": "Operation in progress",
     "operationSuccess": "Operation completed",
     "operationError": "Operation failed",
@@ -204,23 +56,147 @@
     "syncing": "Syncing Homebrew data",
     "inventory": "Homebrew inventory"
   },
+  "titleBar": {
+    "switchToLight": "Switch to Light",
+    "switchToDark": "Switch to Dark",
+    "notifications": "Notifications",
+    "settingsCenter": "Settings Center",
+    "updateFound": "{count} package updates available"
+  },
+  "sidebarNav": {
+    "package": "Package",
+    "resources": "Resources",
+    "allPackages": "All Packages",
+    "updateCleanup": "Update & Cleanup",
+    "taps": "Taps",
+    "services": "Services",
+    "brewfile": "Brewfile"
+  },
+  "table": {
+    "type": "Type",
+    "name": "Name",
+    "desc": "Description",
+    "currentVersion": "Current Version",
+    "latestVersion": "Latest Version",
+    "status": "Status"
+  },
+  "status": {
+    "pinned": "Pinned",
+    "updatable": "Updatable",
+    "notInstalled": "Not Installed"
+  },
+  "actions": {
+    "back": "Back",
+    "install": "Install",
+    "installing": "Installing",
+    "update": "Update",
+    "updating": "Updating",
+    "uninstall": "Uninstall",
+    "pin": "Pin",
+    "unpin": "Unpin"
+  },
+  "allPackages": {
+    "filterAll": "All",
+    "filterInstalled": "Installed",
+    "filterUpdates": "Updates",
+    "searchPlaceholder": "Search package name or description...",
+    "searching": "Searching Homebrew...",
+    "noMatch": "No matching package, try another keyword",
+    "noRows": "No packages to display",
+    "scrollMore": "Scroll to load more ({shown}/{total})",
+    "showAll": "Showing all {total} items"
+  },
+  "bundlePage": {
+    "subtitle": "Restore from Brewfile, or export current environment to Brewfile",
+    "pendingInstall": "Pending",
+    "brews": "Brews",
+    "defaultBrewfilePath": "Default ~/Brewfile",
+    "save": "Save",
+    "actions": "Actions",
+    "exportFromEnv": "Export from Environment",
+    "checkDiff": "Check Diff",
+    "cleanupExtra": "Cleanup Extra Packages",
+    "installDiffPreview": "Install Diff Preview",
+    "noMissingDeps": "No missing dependencies",
+    "commandOutput": "Command Output"
+  },
+  "servicesPage": {
+    "subtitle": "Manage start, stop, and restart actions for Homebrew background services",
+    "name": "Service",
+    "user": "User",
+    "file": "File",
+    "exitCode": "Exit Code"
+  },
+  "tapsPage": {
+    "subtitle": "Manage Homebrew third-party repositories",
+    "searchPlaceholder": "Search tap name or URL...",
+    "newTapPlaceholder": "homebrew/cask-fonts",
+    "configuredRepo": "Configured repositories",
+    "selectedTap": "Selected tap",
+    "official": "Official",
+    "remoteUnavailable": "Remote unavailable",
+    "noMatch": "No matching tap",
+    "detail": "Tap Detail",
+    "pickOne": "Select a tap to view details"
+  },
+  "updateCleanup": {
+    "title": "Update & Cleanup",
+    "subtitle": "Manage outdated packages in bulk and clean old versions and unused dependencies",
+    "upgradesTab": "Upgrades",
+    "cleanupTab": "Cleanup",
+    "cacheTab": "Dependency Cache",
+    "hasNewVersion": "packages have updates",
+    "formula": "CLI packages",
+    "cask": "App packages",
+    "pinned": "Pinned (not updated)",
+    "noCleanupCandidate": "No cleanup candidates",
+    "removeUnused": "Remove unused dependencies",
+    "noAutoremove": "No removable dependencies"
+  },
+  "ui": {
+    "noCommandOutput": "No command output"
+  },
   "settings": {
-    "title": "Settings",
     "language": "Language",
-    "languageDesc": "Choose the interface language",
-    "brewPath": "Homebrew Path",
-    "brewPathDesc": "Custom path to the brew executable (leave empty for default)",
-    "brewPathPlaceholder": "/opt/homebrew/bin/brew",
     "brewFilePath": "Brewfile Path",
-    "brewFilePathDesc": "Default path for Brewfile dump/restore (leave empty for ~/Brewfile)",
     "brewFilePathPlaceholder": "~/Brewfile",
-    "autoUpdate": "Auto Update Check",
-    "autoUpdateDesc": "Automatically check for Homebrew updates",
     "theme": "Theme",
-    "themeDesc": "Choose the application theme",
     "themeDark": "Dark",
-    "themeLight": "Light",
-    "saved": "Settings saved"
+    "themeLight": "Light"
+  },
+  "settingsCenter": {
+    "title": "Settings Center",
+    "subtitle": "App behavior, brew executable path, and config persistence",
+    "runtime": "Runtime",
+    "behavior": "Behavior",
+    "configFile": "Config File",
+    "brewExecutablePath": "Brew Executable Path",
+    "brewExecutablePlaceholder": "Leave empty for auto-detect (recommended)",
+    "pathApplyHint": "Path changes take effect immediately",
+    "pathAvailable": "Available",
+    "pathInvalid": "Path unavailable",
+    "checkUpdatesOnLaunch": "Check updates on launch",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "autoUpdateInterval": "Periodic check interval",
+    "autoUpdateOff": "Off",
+    "logMaxLines": "Max log lines",
+    "exportToEditor": "Export to Editor",
+    "importFromEditor": "Import from Editor",
+    "resetDefault": "Reset to Default",
+    "langZh": "中文",
+    "langEn": "English"
+  },
+  "packageDetail": {
+    "dependencies": "Dependencies",
+    "requiredBy": "Required By",
+    "none": "None",
+    "versionInfo": "Version Info",
+    "links": "Links",
+    "homepage": "Homepage",
+    "tap": "Tap",
+    "license": "License",
+    "token": "Token"
   },
   "log": {
     "showLogs": "Show Logs",
@@ -238,44 +214,9 @@
   "messages": {
     "noLogsYet": "No logs yet",
     "operationFailed": "Operation failed",
-    "upgradeFailed": "Upgrade failed",
-    "cleanupFailed": "Cleanup failed",
-    "cleanupComplete": "Cleanup complete",
-    "autoremoveFailed": "Autoremove failed",
-    "failedLoadCleanupPreview": "Failed to load cleanup preview",
-    "failedLoadAutoremovePreview": "Failed to load autoremove preview",
-    "dumpFailed": "Dump failed",
-    "restoreFailed": "Restore failed",
-    "checkFailed": "Check failed",
-    "cleanupPreviewFailed": "Cleanup preview failed",
-    "doctorFoundIssues": "Doctor found issues",
-    "installedName": "{name} installed",
-    "upgradedName": "{name} upgraded",
-    "reinstalledName": "{name} reinstalled",
-    "installFailed": "Install failed",
-    "reinstallFailed": "Reinstall failed",
-    "allPackagesUpgraded": "All packages upgraded",
-    "brewUpdateCompleted": "brew update completed",
-    "brewUpdateBusy": "Another brew update is running. Please wait and try again.",
-    "brewUpdateFailed": "brew update failed",
-    "bulkUpgrade": "Bulk Upgrade",
-    "bulkUninstall": "Bulk Uninstall",
-    "bulkActionLabel": "Bulk {action}",
-    "bulkProcessedSummary": "{success}/{total} processed",
-    "bulkUpgradedSummary": "{success}/{total} upgraded",
-    "bulkInstalledSummary": "{success}/{total} installed",
-    "bulkRemovedSummary": "{success}/{total} removed",
-    "bulkActionSummary": "{success}/{total} {action}",
-    "bulkProcessedPackages": "{count} package(s) processed",
-    "bulkFailedPackages": "{count} package(s) failed",
-    "serviceActionDone": "{name} {action}ed",
-    "tapAdded": "Tap {name} added",
-    "tapRemoved": "Tap {name} removed",
-    "failedAddTap": "Failed to add tap",
-    "failedRemoveTap": "Failed to remove tap",
-    "failedLoadTapDetails": "Failed to load tap details",
-    "bulkRemoveTaps": "Bulk Remove Taps",
-    "packageActionDone": "{action} {name} done",
-    "packageActionFailed": "{action} failed"
+    "readBrewfileFailed": "Failed to read Brewfile",
+    "failedFetchTaps": "Failed to fetch taps",
+    "failedFetchInstalled": "Failed to fetch installed packages",
+    "failedFetchServices": "Failed to fetch services"
   }
 }

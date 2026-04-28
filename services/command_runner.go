@@ -17,9 +17,22 @@ var (
 	brewPathOnce sync.Once
 	brewPath     string
 	brewPathErr  error
+	brewPathMu   sync.RWMutex
+	brewPathUser string
 )
 
 func resolveBrewPath() (string, error) {
+	brewPathMu.RLock()
+	override := brewPathUser
+	brewPathMu.RUnlock()
+	if override != "" {
+		path, err := exec.LookPath(override)
+		if err != nil {
+			return "", fmt.Errorf("configured brew path is invalid: %w", err)
+		}
+		return path, nil
+	}
+
 	brewPathOnce.Do(func() {
 		if path, err := exec.LookPath("brew"); err == nil {
 			brewPath = path
@@ -44,6 +57,12 @@ func resolveBrewPath() (string, error) {
 		return "", brewPathErr
 	}
 	return brewPath, nil
+}
+
+func SetBrewPathOverride(path string) {
+	brewPathMu.Lock()
+	defer brewPathMu.Unlock()
+	brewPathUser = strings.TrimSpace(path)
 }
 
 func runBrewCommand(ctx context.Context, args ...string) (string, string, error) {

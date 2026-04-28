@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { RefreshCw } from 'lucide-vue-next'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
@@ -14,6 +15,7 @@ import { useLogStore } from '@/stores/log'
 import type { PackageRow, PackageType } from '@/types/brew'
 
 const router = useRouter()
+const { t } = useI18n()
 const installedStore = useInstalledStore()
 const updateStore = useUpdateStore()
 const searchStore = useSearchStore()
@@ -26,11 +28,11 @@ const visibleLimit = ref(pageSize)
 const scrollRoot = ref<HTMLElement | null>(null)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
-const filterOptions = [
-  { label: '全部', value: 'all' },
-  { label: '已安装', value: 'installed' },
-  { label: '可更新', value: 'updates' },
-]
+const filterOptions = computed(() => [
+  { label: t('allPackages.filterAll'), value: 'all' },
+  { label: t('allPackages.filterInstalled'), value: 'installed' },
+  { label: t('allPackages.filterUpdates'), value: 'updates' },
+])
 
 function formulaVersion(item: any) {
   return item.installed?.[0]?.version || item.stable_version || item.versions?.stable || ''
@@ -229,17 +231,17 @@ onUnmounted(() => {
 <template>
   <section class="page">
     <div class="toolbar">
-      <ToolbarSearch v-model="query" placeholder="搜索包名称或描述..." @submit="searchStore.search(query)" />
+      <ToolbarSearch v-model="query" :placeholder="t('allPackages.searchPlaceholder')" @submit="searchStore.search(query)" />
       <div class="toolbar-spacer">
         <SegmentedControl v-model="filter" :options="filterOptions" />
-        <BrewButton @click="refresh"><RefreshCw :size="14" />刷新</BrewButton>
+        <BrewButton @click="refresh"><RefreshCw :size="14" />{{ t('common.refresh') }}</BrewButton>
       </div>
     </div>
     <div v-if="installedStore.error || updateStore.error || searchStore.error" class="content-body">
       <p class="error-text">{{ installedStore.error || updateStore.error || searchStore.error }}</p>
     </div>
     <div v-else ref="scrollRoot" class="content-body" style="padding-top:0;" @scroll="onScroll">
-      <div v-if="searchStore.loading" class="content-subtitle" style="padding:10px 12px;">正在搜索 Homebrew...</div>
+      <div v-if="searchStore.loading" class="content-subtitle" style="padding:10px 12px;">{{ t('allPackages.searching') }}</div>
       <PackageTable
         :rows="displayRows"
         :pending-key="pendingKey"
@@ -250,9 +252,9 @@ onUnmounted(() => {
         @pin="runAction('pin', $event)"
         @unpin="runAction('unpin', $event)"
       />
-      <div v-if="rows.length === 0 && !searchStore.loading" class="empty-state">{{ query.trim() ? '没有匹配的包，可换个关键词试试' : '没有可显示的包' }}</div>
-      <div v-else-if="hasMoreRows" class="empty-state" style="padding:14px;">继续滚动加载更多（{{ displayRows.length }}/{{ rows.length }}）</div>
-      <div v-else-if="rows.length > pageSize" class="empty-state" style="padding:14px;">已显示全部 {{ rows.length }} 项</div>
+      <div v-if="rows.length === 0 && !searchStore.loading" class="empty-state">{{ query.trim() ? t('allPackages.noMatch') : t('allPackages.noRows') }}</div>
+      <div v-else-if="hasMoreRows" class="empty-state" style="padding:14px;">{{ t('allPackages.scrollMore', { shown: displayRows.length, total: rows.length }) }}</div>
+      <div v-else-if="rows.length > pageSize" class="empty-state" style="padding:14px;">{{ t('allPackages.showAll', { total: rows.length }) }}</div>
     </div>
   </section>
 </template>

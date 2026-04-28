@@ -17,6 +17,12 @@ export const useLogStore = defineStore('log', {
     clearTimer: null as ReturnType<typeof setTimeout> | null,
   }),
   actions: {
+    setMaxLines(limit: number) {
+      this.maxLines = Math.max(100, Math.floor(limit))
+      if (this.lines.length > this.maxLines) {
+        this.lines.splice(0, this.lines.length - this.maxLines)
+      }
+    },
     setOperation(status: 'idle' | 'running' | 'success' | 'error' | 'info', message = '') {
       this.operationStatus = status
       this.operationMessage = message

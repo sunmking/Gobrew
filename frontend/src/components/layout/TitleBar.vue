@@ -1,33 +1,51 @@
 <script setup lang="ts">
-import { Bell, Moon, Sun } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { Bell, Moon, Settings, Sun } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useLogStore } from '@/stores/log'
+import { useSettingsStore } from '@/stores/settings'
+import { useUpdateStore } from '@/stores/update'
 
-const theme = ref(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
-const isDark = computed(() => theme.value === 'dark')
+const router = useRouter()
+const { t } = useI18n()
+const settingsStore = useSettingsStore()
+const updateStore = useUpdateStore()
+const logStore = useLogStore()
+const isDark = computed(() => settingsStore.theme === 'dark')
 
-function toggleTheme() {
-  theme.value = isDark.value ? 'light' : 'dark'
-  document.documentElement.dataset.theme = theme.value
-  document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('gobrew-theme', theme.value)
+async function toggleTheme() {
+  await settingsStore.setTheme(isDark.value ? 'light' : 'dark')
+}
+
+async function checkUpdates() {
+  try {
+    await updateStore.forceRefresh()
+    const total = updateStore.formulae.length + updateStore.casks.length
+    if (total === 0) {
+      logStore.markInfo(t('update.upToDate'))
+      return
+    }
+    logStore.markInfo(t('titleBar.updateFound', { count: total }))
+  } catch (error: any) {
+    logStore.markError(error?.message || t('messages.operationFailed'))
+  }
 }
 </script>
 
 <template>
   <header class="titlebar">
-    <div class="traffic-lights" aria-hidden="true">
-      <span class="dot dot-close" />
-      <span class="dot dot-min" />
-      <span class="dot dot-max" />
-    </div>
     <div class="titlebar-title">Gobrew</div>
     <div class="titlebar-actions">
-      <button class="btn-icon" type="button" :title="isDark ? '切换浅色' : '切换深色'" @click="toggleTheme">
+      <button class="btn-icon" type="button" :title="isDark ? t('titleBar.switchToLight') : t('titleBar.switchToDark')" @click="toggleTheme">
         <Moon v-if="!isDark" :size="14" />
         <Sun v-else :size="14" />
       </button>
-      <button class="btn-icon" type="button" title="通知">
+      <button class="btn-icon" type="button" :title="t('titleBar.notifications')" @click="checkUpdates">
         <Bell :size="14" />
+      </button>
+      <button class="btn-icon" type="button" :title="t('titleBar.settingsCenter')" @click="router.push('/settings')">
+        <Settings :size="14" />
       </button>
     </div>
   </header>

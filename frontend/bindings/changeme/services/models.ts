@@ -9,6 +9,51 @@ import { Create as $Create } from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as time$0 from "../../time/models.js";
 
+export class AppConfig {
+    "language": string;
+    "theme": string;
+    "brew_path": string;
+    "brewfile_path": string;
+    "auto_update_interval": string;
+    "log_max_lines": number;
+    "check_updates_on_launch": boolean;
+
+    /** Creates a new AppConfig instance. */
+    constructor($$source: Partial<AppConfig> = {}) {
+        if (!("language" in $$source)) {
+            this["language"] = "";
+        }
+        if (!("theme" in $$source)) {
+            this["theme"] = "";
+        }
+        if (!("brew_path" in $$source)) {
+            this["brew_path"] = "";
+        }
+        if (!("brewfile_path" in $$source)) {
+            this["brewfile_path"] = "";
+        }
+        if (!("auto_update_interval" in $$source)) {
+            this["auto_update_interval"] = "";
+        }
+        if (!("log_max_lines" in $$source)) {
+            this["log_max_lines"] = 0;
+        }
+        if (!("check_updates_on_launch" in $$source)) {
+            this["check_updates_on_launch"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AppConfig instance from a string or object.
+     */
+    static createFrom($$source: any = {}): AppConfig {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AppConfig($$parsedSource as Partial<AppConfig>);
+    }
+}
+
 export class BrewCapabilities {
     "brew_version": string;
     "supports_list_json_v2": boolean;
@@ -47,6 +92,39 @@ export class BrewCapabilities {
     static createFrom($$source: any = {}): BrewCapabilities {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new BrewCapabilities($$parsedSource as Partial<BrewCapabilities>);
+    }
+}
+
+export class BrewPathValidation {
+    "path": string;
+    "valid": boolean;
+    "version": string;
+    "error": string;
+
+    /** Creates a new BrewPathValidation instance. */
+    constructor($$source: Partial<BrewPathValidation> = {}) {
+        if (!("path" in $$source)) {
+            this["path"] = "";
+        }
+        if (!("valid" in $$source)) {
+            this["valid"] = false;
+        }
+        if (!("version" in $$source)) {
+            this["version"] = "";
+        }
+        if (!("error" in $$source)) {
+            this["error"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new BrewPathValidation instance from a string or object.
+     */
+    static createFrom($$source: any = {}): BrewPathValidation {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new BrewPathValidation($$parsedSource as Partial<BrewPathValidation>);
     }
 }
 

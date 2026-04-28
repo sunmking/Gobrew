@@ -17,7 +17,7 @@ const router = createRouter({
     { path: '/maintain', redirect: '/update-cleanup' },
     { path: '/cleanup', redirect: '/update-cleanup' },
     { path: '/bundle', redirect: '/brewfile' },
-    { path: '/settings', redirect: '/' },
+    { path: '/settings', name: 'settings', component: () => import('@/pages/SettingsPage.vue') },
   ],
 })
 

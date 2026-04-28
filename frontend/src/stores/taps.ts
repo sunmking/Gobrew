@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import * as TapService from '../../bindings/changeme/services/tapservice.js'
 import type { TapDetail, TapInfo } from '@/types/brew'
+import i18n from '@/locales'
 
 export const useTapsStore = defineStore('taps', {
   state: () => ({
@@ -18,7 +19,7 @@ export const useTapsStore = defineStore('taps', {
         const result = await TapService.List()
         this.taps = (result as unknown) as TapInfo[]
       } catch (error: any) {
-        this.error = error?.message || 'Failed to fetch taps'
+        this.error = error?.message || i18n.global.t('messages.failedFetchTaps')
       } finally {
         this.loading = false
       }

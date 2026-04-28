@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
 import type { CaskInstalled, FormulaInstalled } from '@/types/brew'
+import i18n from '@/locales'
 
 export const useInstalledStore = defineStore('installed', {
   state: () => ({
@@ -25,7 +26,7 @@ export const useInstalledStore = defineStore('installed', {
         this.casks = ((result?.casks ?? []) as unknown) as CaskInstalled[]
         this.loaded = true
       } catch (error: any) {
-        this.error = error?.message || 'Failed to fetch installed packages'
+        this.error = error?.message || i18n.global.t('messages.failedFetchInstalled')
       } finally {
         this.loading = false
       }
@@ -48,7 +49,7 @@ export const useInstalledStore = defineStore('installed', {
         this.casks = ((result?.casks ?? []) as unknown) as CaskInstalled[]
         this.loaded = true
       } catch (error: any) {
-        this.error = error?.message || 'Failed to fetch installed packages'
+        this.error = error?.message || i18n.global.t('messages.failedFetchInstalled')
       } finally {
         this.loading = false
       }

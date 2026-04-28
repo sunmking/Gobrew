@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-withDefaults(defineProps<{
+const { t } = useI18n()
+const props = defineProps<{
   modelValue: string
   placeholder?: string
-}>(), {
-  placeholder: '搜索...',
-})
+}>()
+const placeholderText = computed(() => props.placeholder || t('searchPalette.placeholder'))
 
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void
@@ -20,7 +22,7 @@ const emit = defineEmits<{
     <input
       class="search-input"
       :value="modelValue"
-      :placeholder="placeholder"
+      :placeholder="placeholderText"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     >
   </form>

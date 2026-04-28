@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Plus, RefreshCw, Trash2 } from 'lucide-vue-next'
 import ToolbarSearch from '@/components/common/ToolbarSearch.vue'
 import BrewButton from '@/components/common/BrewButton.vue'
@@ -8,6 +9,7 @@ import StatusPill from '@/components/common/StatusPill.vue'
 import { useTapsStore } from '@/stores/taps'
 
 const tapsStore = useTapsStore()
+const { t } = useI18n()
 const query = ref('')
 const newTap = ref('')
 const selected = ref('')
@@ -33,21 +35,21 @@ onMounted(tapsStore.fetchTaps)
 <template>
   <section class="page">
     <div class="content-header">
-      <h1 class="content-title">Taps</h1>
-      <p class="content-subtitle">管理 Homebrew 第三方仓库</p>
+      <h1 class="content-title">{{ t('taps.title') }}</h1>
+      <p class="content-subtitle">{{ t('tapsPage.subtitle') }}</p>
     </div>
     <div class="toolbar">
-      <ToolbarSearch v-model="query" placeholder="搜索 tap 名称或 URL..." />
-      <input v-model="newTap" class="search-input" style="max-width:260px; padding-left:10px;" placeholder="homebrew/cask-fonts" @keyup.enter="addTap">
-      <BrewButton variant="primary" @click="addTap"><Plus :size="14" />添加 Tap</BrewButton>
-      <BrewButton @click="tapsStore.fetchTaps"><RefreshCw :size="14" />刷新</BrewButton>
+      <ToolbarSearch v-model="query" :placeholder="t('tapsPage.searchPlaceholder')" />
+      <input v-model="newTap" class="search-input" style="max-width:260px; padding-left:10px;" :placeholder="t('tapsPage.newTapPlaceholder')" @keyup.enter="addTap">
+      <BrewButton variant="primary" @click="addTap"><Plus :size="14" />{{ t('taps.add') }}</BrewButton>
+      <BrewButton @click="tapsStore.fetchTaps"><RefreshCw :size="14" />{{ t('common.refresh') }}</BrewButton>
     </div>
     <div class="content-body">
       <div class="stat-grid">
-        <StatCard label="Taps" :value="tapsStore.taps.length" sub="已配置仓库" />
-        <StatCard label="Formulae" :value="detail?.formula_names?.length || 0" sub="所选 tap" tone="accent" />
-        <StatCard label="Casks" :value="detail?.cask_tokens?.length || 0" sub="所选 tap" />
-        <StatCard label="Branch" :value="detail?.branch || '-'" sub="所选 tap" />
+        <StatCard label="Taps" :value="tapsStore.taps.length" :sub="t('tapsPage.configuredRepo')" />
+        <StatCard label="Formulae" :value="detail?.formula_names?.length || 0" :sub="t('tapsPage.selectedTap')" tone="accent" />
+        <StatCard label="Casks" :value="detail?.cask_tokens?.length || 0" :sub="t('tapsPage.selectedTap')" />
+        <StatCard label="Branch" :value="detail?.branch || '-'" :sub="t('tapsPage.selectedTap')" />
       </div>
       <div style="display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:16px;">
         <div>
@@ -55,23 +57,23 @@ onMounted(tapsStore.fetchTaps)
             <div style="display:flex; align-items:center; gap:12px;">
               <div style="flex:1; min-width:0;">
                 <div class="pkg-name">{{ tap.name }}</div>
-                <div class="pkg-desc">{{ tap.remote || 'remote unavailable' }}</div>
+                <div class="pkg-desc">{{ tap.remote || t('tapsPage.remoteUnavailable') }}</div>
               </div>
-              <StatusPill :status="tap.custom_remote ? 'neutral' : 'installed'">{{ tap.custom_remote ? 'Custom' : 'Official' }}</StatusPill>
+              <StatusPill :status="tap.custom_remote ? 'neutral' : 'installed'">{{ tap.custom_remote ? t('taps.detail.customRemote') : t('tapsPage.official') }}</StatusPill>
               <BrewButton variant="ghost" @click.stop="tapsStore.remove(tap.name)"><Trash2 :size="14" /></BrewButton>
             </div>
           </div>
-          <div v-if="filtered.length === 0" class="empty-state">没有匹配的 Tap</div>
+          <div v-if="filtered.length === 0" class="empty-state">{{ t('tapsPage.noMatch') }}</div>
         </div>
         <aside class="detail-card">
-          <div class="detail-card-title">Tap 详情</div>
+          <div class="detail-card-title">{{ t('tapsPage.detail') }}</div>
           <template v-if="detail">
-            <div class="meta-row"><span class="meta-label">名称</span><span class="meta-value">{{ detail.name }}</span></div>
-            <div class="meta-row"><span class="meta-label">Formulae</span><span class="meta-value">{{ detail.formula_names.length }}</span></div>
-            <div class="meta-row"><span class="meta-label">Casks</span><span class="meta-value">{{ detail.cask_tokens.length }}</span></div>
-            <div class="meta-row"><span class="meta-label">Last commit</span><span class="meta-value">{{ detail.last_commit || '-' }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('table.name') }}</span><span class="meta-value">{{ detail.name }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('installed.formulae') }}</span><span class="meta-value">{{ detail.formula_names.length }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('installed.casks') }}</span><span class="meta-value">{{ detail.cask_tokens.length }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('taps.detail.lastCommit') }}</span><span class="meta-value">{{ detail.last_commit || '-' }}</span></div>
           </template>
-          <div v-else class="content-subtitle">选择一个 tap 查看详情</div>
+          <div v-else class="content-subtitle">{{ t('tapsPage.pickOne') }}</div>
         </aside>
       </div>
     </div>

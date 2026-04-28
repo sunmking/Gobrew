@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import * as ServiceManager from '../../bindings/changeme/services/servicemanager.js'
 import type { BrewService } from '@/types/brew'
+import i18n from '@/locales'
 
 export const useServicesStore = defineStore('services', {
   state: () => ({
@@ -17,7 +18,7 @@ export const useServicesStore = defineStore('services', {
         const result = await ServiceManager.List()
         this.services = (result as unknown) as BrewService[]
       } catch (error: any) {
-        this.error = error?.message || 'Failed to fetch services'
+        this.error = error?.message || i18n.global.t('messages.failedFetchServices')
       } finally {
         this.loading = false
       }

@@ -1,144 +1,200 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Globe, Terminal, Clock, Palette } from 'lucide-vue-next'
-import { useSettingsStore, type ThemeMode, type AutoUpdateInterval } from '@/stores/settings'
-import Toast from '@/components/common/Toast.vue'
+import { Download, RotateCcw, Upload } from 'lucide-vue-next'
+import { ConfigPath, Export } from '../../bindings/changeme/services/configservice.js'
+import BrewButton from '@/components/common/BrewButton.vue'
+import { useLogStore } from '@/stores/log'
+import { type AutoUpdateInterval, type ThemeMode, useSettingsStore } from '@/stores/settings'
 
 const { t, locale } = useI18n()
 const settingsStore = useSettingsStore()
-const toastRef = ref<any>(null)
+const logStore = useLogStore()
 
-const languages = [
-  { value: 'en', label: 'English' },
-  { value: 'zh', label: '中文' },
-]
+const draftBrewPath = ref('')
+const draftBrewfilePath = ref('')
+const importContent = ref('')
+const configPath = ref('')
+const pathValidationText = ref('')
+const pathValidationTone = ref<'muted' | 'success' | 'danger'>('muted')
+const busy = ref(false)
 
-const autoUpdateOptions: { value: AutoUpdateInterval; label: string }[] = [
-  { value: 'off', label: 'Off' },
+const languages = computed(() => [
+  { value: 'zh', label: t('settingsCenter.langZh') },
+  { value: 'en', label: t('settingsCenter.langEn') },
+])
+const autoUpdateOptions = computed<Array<{ value: AutoUpdateInterval; label: string }>>(() => [
+  { value: 'off', label: t('settingsCenter.autoUpdateOff') },
   { value: '1h', label: '1h' },
   { value: '6h', label: '6h' },
   { value: '12h', label: '12h' },
   { value: '24h', label: '24h' },
-]
-
-const themeOptions: { value: ThemeMode; label: string }[] = [
+])
+const themeOptions = computed<Array<{ value: ThemeMode; label: string }>>(() => [
   { value: 'dark', label: t('settings.themeDark') },
   { value: 'light', label: t('settings.themeLight') },
-]
+])
 
-function onLanguageChange() {
-  settingsStore.setLanguage(settingsStore.language)
+const canImport = computed(() => importContent.value.trim().length > 0)
+
+function syncDraft() {
+  draftBrewPath.value = settingsStore.brewPath
+  draftBrewfilePath.value = settingsStore.brewFilePath
+}
+
+async function saveLanguage(value: string) {
+  await settingsStore.setLanguage(value)
   locale.value = settingsStore.language
 }
+
+async function saveTheme(value: ThemeMode) {
+  await settingsStore.setTheme(value)
+}
+
+async function saveAutoUpdate(value: AutoUpdateInterval) {
+  await settingsStore.setAutoUpdate(value)
+}
+
+async function saveCheckUpdates(value: boolean) {
+  await settingsStore.setCheckUpdatesOnLaunch(value)
+}
+
+async function saveLogMaxLines(value: string) {
+  const lines = Math.max(100, Number(value || 1000))
+  await settingsStore.setLogMaxLines(lines)
+  logStore.setMaxLines(settingsStore.logMaxLines)
+}
+
+async function saveBrewPath() {
+  await settingsStore.setBrewPath(draftBrewPath.value)
+  const result = await settingsStore.validateBrewPath(settingsStore.brewPath)
+  if (result.valid) {
+    pathValidationTone.value = 'success'
+    pathValidationText.value = result.version
+      ? `${t('settingsCenter.pathAvailable')} (${result.version})`
+      : t('settingsCenter.pathAvailable')
+    return
+  }
+  pathValidationTone.value = 'danger'
+  pathValidationText.value = result.error || t('settingsCenter.pathInvalid')
+}
+
+async function saveBrewfilePath() {
+  await settingsStore.setBrewFilePath(draftBrewfilePath.value)
+}
+
+async function exportConfig() {
+  const payload = await Export()
+  importContent.value = payload
+}
+
+async function importConfig() {
+  if (!canImport.value) return
+  busy.value = true
+  try {
+    await settingsStore.importFromContent(importContent.value)
+    locale.value = settingsStore.language
+    logStore.setMaxLines(settingsStore.logMaxLines)
+    syncDraft()
+  } finally {
+    busy.value = false
+  }
+}
+
+async function resetConfig() {
+  busy.value = true
+  try {
+    await settingsStore.resetAll()
+    locale.value = settingsStore.language
+    logStore.setMaxLines(settingsStore.logMaxLines)
+    syncDraft()
+    pathValidationTone.value = 'muted'
+    pathValidationText.value = ''
+  } finally {
+    busy.value = false
+  }
+}
+
+onMounted(async () => {
+  if (!settingsStore.initialized) {
+    await settingsStore.load()
+  }
+  locale.value = settingsStore.language
+  logStore.setMaxLines(settingsStore.logMaxLines)
+  configPath.value = await ConfigPath()
+  syncDraft()
+})
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
+  <section class="page">
     <div class="content-header">
-      <h1 class="content-title">{{ t('settings.title') }}</h1>
+      <h1 class="content-title">{{ t('settingsCenter.title') }}</h1>
+      <p class="content-subtitle">{{ t('settingsCenter.subtitle') }}</p>
     </div>
-
-    <div class="flex-1 min-h-0 overflow-y-auto" style="display:flex;flex-direction:column;gap:20px;">
-
-      <div class="content-section">
-        <div class="card-group">
-          <div class="card-row" style="padding:14px 16px;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-              <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--color-accent-light);">
-                <Globe :size="15" style="color:var(--color-accent);" />
-              </div>
-              <div style="min-width:0;">
-                <div style="font-size:13px;font-weight:500;">{{ t('settings.language') }}</div>
-                <div style="font-size:12px;color:var(--color-text-secondary);margin-top:1px;">{{ t('settings.languageDesc') }}</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;">
-              <button
-                v-for="lang in languages" :key="lang.value"
-                :style="settingsStore.language === lang.value
-                  ? 'background:var(--color-accent);color:white;border:none;border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;'
-                  : 'background:var(--color-card-hover);color:var(--color-text);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;cursor:pointer;'"
-                @click="settingsStore.setLanguage(lang.value); onLanguageChange()"
-              >{{ lang.label }}</button>
+    <div class="content-body" style="display:flex; flex-direction:column; gap:16px;">
+      <div class="detail-card">
+        <div class="detail-card-title">{{ t('settingsCenter.runtime') }}</div>
+        <div style="display:grid; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div class="content-subtitle" style="margin:0;">{{ t('settings.language') }}</div>
+            <div style="display:flex; gap:8px;">
+              <BrewButton v-for="lang in languages" :key="lang.value" :variant="settingsStore.language === lang.value ? 'primary' : 'secondary'" @click="saveLanguage(lang.value)">{{ lang.label }}</BrewButton>
             </div>
           </div>
-
-          <div class="card-row" style="padding:14px 16px;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-              <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--color-accent-light);">
-                <Palette :size="15" style="color:var(--color-accent);" />
-              </div>
-              <div style="min-width:0;">
-                <div style="font-size:13px;font-weight:500;">{{ t('settings.theme') }}</div>
-                <div style="font-size:12px;color:var(--color-text-secondary);margin-top:1px;">{{ t('settings.themeDesc') }}</div>
-              </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div class="content-subtitle" style="margin:0;">{{ t('settings.theme') }}</div>
+            <div style="display:flex; gap:8px;">
+              <BrewButton v-for="opt in themeOptions" :key="opt.value" :variant="settingsStore.theme === opt.value ? 'primary' : 'secondary'" @click="saveTheme(opt.value)">{{ opt.label }}</BrewButton>
             </div>
-            <div style="display:flex;gap:6px;flex-shrink:0;">
-              <button
-                v-for="opt in themeOptions" :key="opt.value"
-                :style="settingsStore.theme === opt.value
-                  ? 'background:var(--color-accent);color:white;border:none;border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;'
-                  : 'background:var(--color-card-hover);color:var(--color-text);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;cursor:pointer;'"
-                @click="settingsStore.setTheme(opt.value)"
-              >{{ opt.label }}</button>
+          </div>
+          <div>
+            <div class="content-subtitle" style="margin-bottom:6px;">{{ t('settingsCenter.brewExecutablePath') }}</div>
+            <input v-model="draftBrewPath" class="search-input" :placeholder="t('settingsCenter.brewExecutablePlaceholder')" @change="saveBrewPath">
+            <div class="content-subtitle" :style="pathValidationTone === 'success' ? 'color:var(--success);margin-top:6px;' : pathValidationTone === 'danger' ? 'color:var(--danger);margin-top:6px;' : 'margin-top:6px;'">
+              {{ pathValidationText || t('settingsCenter.pathApplyHint') }}
             </div>
+          </div>
+          <div>
+            <div class="content-subtitle" style="margin-bottom:6px;">{{ t('settings.brewFilePath') }}</div>
+            <input v-model="draftBrewfilePath" class="search-input" :placeholder="t('settings.brewFilePathPlaceholder')" @change="saveBrewfilePath">
           </div>
         </div>
       </div>
 
-      <div class="content-section">
-        <div class="section-title">{{ t('settings.autoUpdate') || 'Auto Update' }}</div>
-        <div class="card-group">
-          <div class="card-row" style="padding:14px 16px;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-              <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--color-accent-light);">
-                <Clock :size="15" style="color:var(--color-accent);" />
-              </div>
-              <div style="min-width:0;">
-                <div style="font-size:13px;font-weight:500;">{{ t('settings.autoUpdate') }}</div>
-                <div style="font-size:12px;color:var(--color-text-secondary);margin-top:1px;">{{ t('settings.autoUpdateDesc') }}</div>
-              </div>
+      <div class="detail-card">
+        <div class="detail-card-title">{{ t('settingsCenter.behavior') }}</div>
+        <div style="display:grid; gap:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div class="content-subtitle" style="margin:0;">{{ t('settingsCenter.checkUpdatesOnLaunch') }}</div>
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" :checked="settingsStore.checkUpdatesOnLaunch" @change="saveCheckUpdates(($event.target as HTMLInputElement).checked)">
+              <span>{{ settingsStore.checkUpdatesOnLaunch ? t('settingsCenter.enabled') : t('settingsCenter.disabled') }}</span>
+            </label>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div class="content-subtitle" style="margin:0;">{{ t('settingsCenter.autoUpdateInterval') }}</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <BrewButton v-for="opt in autoUpdateOptions" :key="opt.value" :variant="settingsStore.autoUpdate === opt.value ? 'primary' : 'secondary'" @click="saveAutoUpdate(opt.value)">{{ opt.label }}</BrewButton>
             </div>
-            <div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
-              <button
-                v-for="opt in autoUpdateOptions" :key="opt.value"
-                :style="settingsStore.autoUpdate === opt.value
-                  ? 'background:var(--color-accent);color:white;border:none;border-radius:var(--radius-sm);padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;'
-                  : 'background:var(--color-card-hover);color:var(--color-text);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:5px 12px;font-size:12px;cursor:pointer;'"
-                @click="settingsStore.setAutoUpdate(opt.value)"
-              >{{ opt.label }}</button>
-            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div class="content-subtitle" style="margin:0;">{{ t('settingsCenter.logMaxLines') }}</div>
+            <input type="number" class="search-input" style="max-width:180px;" :value="settingsStore.logMaxLines" min="100" step="100" @change="saveLogMaxLines(($event.target as HTMLInputElement).value)">
           </div>
         </div>
       </div>
 
-      <div class="content-section">
-        <div class="section-title">{{ t('settings.brewPath') || 'Brew Path' }}</div>
-        <div class="card-group">
-          <div class="card-row" style="padding:14px 16px;">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
-              <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--color-accent-light);">
-                <Terminal :size="15" style="color:var(--color-accent);" />
-              </div>
-              <div style="min-width:0;flex:1;">
-                <div style="font-size:13px;font-weight:500;">{{ t('settings.brewPath') }}</div>
-                <div style="font-size:12px;color:var(--color-text-secondary);margin-top:1px;margin-bottom:8px;">{{ t('settings.brewPathDesc') }}</div>
-                <input
-                  v-model="settingsStore.brewPath"
-                  type="text"
-                  :placeholder="t('settings.brewPathPlaceholder')"
-                  style="width:100%;padding:6px 10px;font-size:13px;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-content-bg,#f5f5f7);color:var(--color-text);outline:none;font-family:var(--font-mono);"
-                  @change="settingsStore.setBrewPath(settingsStore.brewPath)"
-                />
-              </div>
-            </div>
-          </div>
+      <div class="detail-card">
+        <div class="detail-card-title">{{ t('settingsCenter.configFile') }}</div>
+        <div class="content-subtitle" style="margin-bottom:8px;">{{ configPath }}</div>
+        <div class="toolbar" style="padding:0 0 10px; border:0; gap:8px;">
+          <BrewButton @click="exportConfig"><Download :size="14" />{{ t('settingsCenter.exportToEditor') }}</BrewButton>
+          <BrewButton variant="primary" :disabled="busy || !canImport" @click="importConfig"><Upload :size="14" />{{ t('settingsCenter.importFromEditor') }}</BrewButton>
+          <BrewButton variant="danger" :disabled="busy" @click="resetConfig"><RotateCcw :size="14" />{{ t('settingsCenter.resetDefault') }}</BrewButton>
         </div>
+        <textarea v-model="importContent" spellcheck="false" style="width:100%; min-height:180px; resize:vertical; background:var(--surface); color:var(--fg); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; font-family:var(--font-mono); font-size:12.5px; line-height:1.7; outline:none;" />
       </div>
-
     </div>
-
-    <Toast ref="toastRef" />
-  </div>
+  </section>
 </template>

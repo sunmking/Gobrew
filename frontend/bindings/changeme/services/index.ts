@@ -3,17 +3,21 @@
 
 import * as BrewService from "./brewservice.js";
 import * as BundleService from "./bundleservice.js";
+import * as ConfigService from "./configservice.js";
 import * as ServiceManager from "./servicemanager.js";
 import * as TapService from "./tapservice.js";
 export {
     BrewService,
     BundleService,
+    ConfigService,
     ServiceManager,
     TapService
 };
 
 export {
+    AppConfig,
     BrewCapabilities,
+    BrewPathValidation,
     BrewServicesResult,
     BundleCheckResult,
     CaskInfo,
