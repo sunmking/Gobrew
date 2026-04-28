@@ -40,7 +40,13 @@ function upsert(rows: Map<string, PackageRow>, row: PackageRow) {
 
 const rows = computed(() => {
   const map = new Map<string, PackageRow>()
-  for (const item of installedStore.formulae) {
+  const hasQuery = query.value.trim().length > 0
+  const installedFormulae = new Map(installedStore.formulae.map(item => [item.name, item]))
+  const installedCasks = new Map(installedStore.casks.map(item => [item.token || item.name, item]))
+  const outdatedFormulae = new Map(updateStore.formulae.map(item => [item.name, item]))
+  const outdatedCasks = new Map(updateStore.casks.map(item => [item.name, item]))
+
+  if (!hasQuery) for (const item of installedStore.formulae) {
     const name = item.name
     upsert(map, {
       key: `formula:${name}`,
@@ -56,7 +62,7 @@ const rows = computed(() => {
       pinned: item.pinned,
     })
   }
-  for (const item of installedStore.casks) {
+  if (!hasQuery) for (const item of installedStore.casks) {
     const name = item.token || item.name
     upsert(map, {
       key: `cask:${name}`,
@@ -72,7 +78,7 @@ const rows = computed(() => {
       pinned: false,
     })
   }
-  for (const item of updateStore.formulae) {
+  if (!hasQuery) for (const item of updateStore.formulae) {
     upsert(map, {
       key: `formula:${item.name}`,
       type: 'formula',
@@ -87,7 +93,7 @@ const rows = computed(() => {
       pinned: item.pinned,
     })
   }
-  for (const item of updateStore.casks) {
+  if (!hasQuery) for (const item of updateStore.casks) {
     upsert(map, {
       key: `cask:${item.name}`,
       type: 'cask',
@@ -103,32 +109,36 @@ const rows = computed(() => {
     })
   }
   for (const item of searchStore.results.formulae) {
+    const installed = installedFormulae.get(item.name)
+    const outdated = outdatedFormulae.get(item.name)
     upsert(map, {
       key: `formula:${item.name}`,
       type: 'formula',
       name: item.name,
       fullName: item.full_name || item.name,
-      desc: item.desc,
-      tap: item.tap,
-      installedVersion: '',
-      latestVersion: '',
-      installed: false,
-      updateAvailable: false,
-      pinned: false,
+      desc: item.desc || installed?.desc || '',
+      tap: item.tap || installed?.tap || '',
+      installedVersion: installed ? formulaVersion(installed) : outdated?.installed_versions?.join(', ') || '',
+      latestVersion: outdated?.current_version || installed?.stable_version || installed?.versions?.stable || '',
+      installed: Boolean(installed || outdated),
+      updateAvailable: Boolean(outdated),
+      pinned: Boolean(installed?.pinned || outdated?.pinned),
     })
   }
   for (const item of searchStore.results.casks) {
+    const installed = installedCasks.get(item.name)
+    const outdated = outdatedCasks.get(item.name)
     upsert(map, {
       key: `cask:${item.name}`,
       type: 'cask',
       name: item.name,
       fullName: item.full_name || item.name,
-      desc: item.desc,
-      tap: item.tap,
-      installedVersion: '',
-      latestVersion: '',
-      installed: false,
-      updateAvailable: false,
+      desc: item.desc || installed?.desc || '',
+      tap: item.tap || installed?.tap || '',
+      installedVersion: installed?.installed || installed?.version || outdated?.installed_version || '',
+      latestVersion: outdated?.current_version || installed?.version || '',
+      installed: Boolean(installed || outdated),
+      updateAvailable: Boolean(outdated),
       pinned: false,
     })
   }
