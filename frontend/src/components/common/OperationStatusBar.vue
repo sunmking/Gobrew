@@ -73,15 +73,15 @@ function closeBar() {
 <style scoped>
 .operation-bar {
   position: fixed;
-  left: 236px;
+  left: 216px;
   right: 16px;
   bottom: 14px;
   z-index: 46;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--color-card) 96%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(10px);
-  box-shadow: var(--color-shadow);
+  box-shadow: 0 12px 28px oklch(0% 0 0 / 0.14);
 }
 
 .operation-main {
@@ -96,7 +96,7 @@ function closeBar() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-accent);
+  color: var(--accent);
 }
 
 .operation-content {
@@ -107,13 +107,13 @@ function closeBar() {
 .operation-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--fg);
 }
 
 .operation-detail {
   margin-top: 2px;
   font-size: 11px;
-  color: var(--color-text-secondary);
+  color: var(--muted);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -123,9 +123,9 @@ function closeBar() {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--border);
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--muted);
   border-radius: var(--radius-sm);
   padding: 4px 6px;
   font-size: 11px;
@@ -133,18 +133,18 @@ function closeBar() {
 }
 
 .operation-btn:hover {
-  background: var(--color-sidebar-hover);
+  background: var(--border);
 }
 
 .operation-logs {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
   max-height: 160px;
   overflow: auto;
   padding: 8px 10px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--color-text-secondary);
-  background: var(--color-group-bg);
+  color: var(--muted);
+  background: var(--bg);
 }
 
 .operation-log-line + .operation-log-line {
@@ -152,23 +152,23 @@ function closeBar() {
 }
 
 .operation-log-line.is-error {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .is-running .operation-leading {
-  color: var(--color-accent);
+  color: var(--accent);
 }
 
 .is-success .operation-leading {
-  color: var(--color-success);
+  color: var(--success);
 }
 
 .is-error .operation-leading {
-  color: var(--color-danger);
+  color: var(--danger);
 }
 
 .is-info .operation-leading {
-  color: var(--color-text-secondary);
+  color: var(--muted);
 }
 
 .spinning {

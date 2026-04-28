@@ -51,6 +51,10 @@ export function SetApp(app: application$0.App | null): $CancellablePromise<void>
     return $Call.ByID(986277686, app);
 }
 
+export function WriteBrewfile(filePath: string, content: string): $CancellablePromise<void> {
+    return $Call.ByID(2067547910, filePath, content);
+}
+
 // Private type creation functions
 const $$createType0 = $models.BundleCheckResult.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);

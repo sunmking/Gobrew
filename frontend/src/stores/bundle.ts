@@ -53,5 +53,9 @@ export const useBundleStore = defineStore('bundle', {
     async cleanup(path?: string, force = false) {
       await BundleService.Cleanup(path || '', force)
     },
+    async write(path: string | undefined, content: string) {
+      await BundleService.WriteBrewfile(path || '', content)
+      this.brewfileContent = content
+    },
   },
 })

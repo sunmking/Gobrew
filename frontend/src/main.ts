@@ -5,12 +5,9 @@ import router from './router'
 import i18n from './locales'
 import './style.css'
 
-const savedTheme = localStorage.getItem('gobrew-theme') || 'dark'
-if (savedTheme === 'dark') {
-  document.documentElement.classList.add('dark')
-} else {
-  document.documentElement.classList.remove('dark')
-}
+const savedTheme = localStorage.getItem('gobrew-theme') || 'light'
+document.documentElement.dataset.theme = savedTheme === 'dark' ? 'dark' : 'light'
+document.documentElement.classList.toggle('dark', savedTheme === 'dark')
 
 const app = createApp(App)
 app.use(createPinia())

@@ -25,6 +25,7 @@ export {
     OutdatedCask,
     OutdatedFormula,
     OutdatedListResult,
+    PackageInfoResult,
     SearchItem,
     SearchResult,
     TapDetailResult,

@@ -33,6 +33,24 @@ type CaskInfo struct {
 	Token       string `json:"token"`
 }
 
+type PackageInfoResult struct {
+	Type             string    `json:"type"`
+	Name             string    `json:"name"`
+	FullName         string    `json:"full_name"`
+	Tap              string    `json:"tap"`
+	Desc             string    `json:"desc"`
+	Homepage         string    `json:"homepage"`
+	License          string    `json:"license"`
+	CurrentVersion   string    `json:"current_version"`
+	InstalledVersion string    `json:"installed_version"`
+	LinkedKeg        string    `json:"linked_keg"`
+	Pinned           bool      `json:"pinned"`
+	AutoUpdates      bool      `json:"auto_updates"`
+	Token            string    `json:"token"`
+	Installed        []KegInfo `json:"installed"`
+	Dependencies     []string  `json:"dependencies"`
+}
+
 type OutdatedFormula struct {
 	Name              string   `json:"name"`
 	InstalledVersions []string `json:"installed_versions"`

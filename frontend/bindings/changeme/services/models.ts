@@ -470,6 +470,91 @@ export class OutdatedListResult {
     }
 }
 
+export class PackageInfoResult {
+    "type": string;
+    "name": string;
+    "full_name": string;
+    "tap": string;
+    "desc": string;
+    "homepage": string;
+    "license": string;
+    "current_version": string;
+    "installed_version": string;
+    "linked_keg": string;
+    "pinned": boolean;
+    "auto_updates": boolean;
+    "token": string;
+    "installed": KegInfo[];
+    "dependencies": string[];
+
+    /** Creates a new PackageInfoResult instance. */
+    constructor($$source: Partial<PackageInfoResult> = {}) {
+        if (!("type" in $$source)) {
+            this["type"] = "";
+        }
+        if (!("name" in $$source)) {
+            this["name"] = "";
+        }
+        if (!("full_name" in $$source)) {
+            this["full_name"] = "";
+        }
+        if (!("tap" in $$source)) {
+            this["tap"] = "";
+        }
+        if (!("desc" in $$source)) {
+            this["desc"] = "";
+        }
+        if (!("homepage" in $$source)) {
+            this["homepage"] = "";
+        }
+        if (!("license" in $$source)) {
+            this["license"] = "";
+        }
+        if (!("current_version" in $$source)) {
+            this["current_version"] = "";
+        }
+        if (!("installed_version" in $$source)) {
+            this["installed_version"] = "";
+        }
+        if (!("linked_keg" in $$source)) {
+            this["linked_keg"] = "";
+        }
+        if (!("pinned" in $$source)) {
+            this["pinned"] = false;
+        }
+        if (!("auto_updates" in $$source)) {
+            this["auto_updates"] = false;
+        }
+        if (!("token" in $$source)) {
+            this["token"] = "";
+        }
+        if (!("installed" in $$source)) {
+            this["installed"] = [];
+        }
+        if (!("dependencies" in $$source)) {
+            this["dependencies"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PackageInfoResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PackageInfoResult {
+        const $$createField13_0 = $$createType2;
+        const $$createField14_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("installed" in $$parsedSource) {
+            $$parsedSource["installed"] = $$createField13_0($$parsedSource["installed"]);
+        }
+        if ("dependencies" in $$parsedSource) {
+            $$parsedSource["dependencies"] = $$createField14_0($$parsedSource["dependencies"]);
+        }
+        return new PackageInfoResult($$parsedSource as Partial<PackageInfoResult>);
+    }
+}
+
 export class SearchItem {
     "name": string;
     "full_name": string;

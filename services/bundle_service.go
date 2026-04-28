@@ -148,6 +148,20 @@ func (b *BundleService) ReadBrewfile(filePath string) (string, error) {
 	return string(data), nil
 }
 
+func (b *BundleService) WriteBrewfile(filePath, content string) error {
+	resolved, err := resolveBrewfilePath(filePath)
+	if err != nil {
+		return err
+	}
+	if mkErr := os.MkdirAll(filepath.Dir(resolved), 0755); mkErr != nil {
+		return &BrewError{Code: "WRITE_FAILED", Message: "Failed to create Brewfile directory", Details: mkErr.Error()}
+	}
+	if writeErr := os.WriteFile(resolved, []byte(content), 0644); writeErr != nil {
+		return &BrewError{Code: "WRITE_FAILED", Message: "Failed to write Brewfile", Details: writeErr.Error()}
+	}
+	return nil
+}
+
 func (b *BundleService) emitComplete(success bool, details string, start time.Time) {
 	emitBrewComplete(b.app, success, details, time.Since(start))
 }

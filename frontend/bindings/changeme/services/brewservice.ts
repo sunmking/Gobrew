@@ -73,13 +73,19 @@ export function Outdated(): $CancellablePromise<$models.OutdatedListResult | nul
     });
 }
 
+export function PackageInfo(name: string, packageType: string): $CancellablePromise<$models.PackageInfoResult | null> {
+    return $Call.ByID(3588674495, name, packageType).then(($result: any) => {
+        return $$createType13($result);
+    });
+}
+
 export function Reinstall(name: string, isCask: boolean): $CancellablePromise<void> {
     return $Call.ByID(142764307, name, isCask);
 }
 
 export function Search(query: string): $CancellablePromise<$models.SearchResult | null> {
     return $Call.ByID(1352804233, query).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType15($result);
     });
 }
 
@@ -126,5 +132,7 @@ const $$createType8 = $models.InstalledListResult.createFrom;
 const $$createType9 = $Create.Nullable($$createType8);
 const $$createType10 = $models.OutdatedListResult.createFrom;
 const $$createType11 = $Create.Nullable($$createType10);
-const $$createType12 = $models.SearchResult.createFrom;
+const $$createType12 = $models.PackageInfoResult.createFrom;
 const $$createType13 = $Create.Nullable($$createType12);
+const $$createType14 = $models.SearchResult.createFrom;
+const $$createType15 = $Create.Nullable($$createType14);

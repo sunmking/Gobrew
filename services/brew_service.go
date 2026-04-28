@@ -192,6 +192,40 @@ func (b *BrewService) Info(ctx context.Context, name string) (*FormulaInfo, erro
 	}, nil
 }
 
+func (b *BrewService) PackageInfo(ctx context.Context, name, packageType string) (*PackageInfoResult, error) {
+	pkgType := strings.ToLower(strings.TrimSpace(packageType))
+	pkgName := strings.TrimSpace(name)
+	if pkgName == "" {
+		return nil, &BrewError{Code: "INVALID_ARGUMENT", Message: "Package name is required"}
+	}
+	if pkgType == "" {
+		pkgType = "formula"
+	}
+	if pkgType != "formula" && pkgType != "cask" {
+		return nil, &BrewError{Code: "INVALID_ARGUMENT", Message: "Unsupported package type: " + packageType}
+	}
+
+	args := []string{"info", "--json=v2"}
+	if pkgType == "cask" {
+		args = append(args, "--cask")
+	}
+	args = append(args, pkgName)
+
+	stdout, stderr, err := runBrewCommand(ctx, args...)
+	if err != nil {
+		return nil, &BrewError{Code: "INFO_FAILED", Message: "Failed to get info for " + pkgName, Details: stderr}
+	}
+
+	info, parseErr := parsePackageInfoJSON(stdout, pkgName, pkgType)
+	if parseErr != nil {
+		if brewErr, ok := parseErr.(*BrewError); ok {
+			return nil, brewErr
+		}
+		return nil, &BrewError{Code: "PARSE_FAILED", Message: "Failed to parse package info", Details: parseErr.Error()}
+	}
+	return info, nil
+}
+
 func (b *BrewService) Install(ctx context.Context, name string) error {
 	start := time.Now()
 	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, "install", name)
@@ -484,6 +518,105 @@ func parseCaskListJSON(stdout string) ([]CaskInfo, error) {
 		})
 	}
 	return casks, nil
+}
+
+func parsePackageInfoJSON(stdout, name, packageType string) (*PackageInfoResult, error) {
+	var raw struct {
+		Formulae []struct {
+			Name      string    `json:"name"`
+			FullName  string    `json:"full_name"`
+			Tap       string    `json:"tap"`
+			Desc      string    `json:"desc"`
+			Homepage  string    `json:"homepage"`
+			License   string    `json:"license"`
+			LinkedKeg string    `json:"linked_keg"`
+			Pinned    bool      `json:"pinned"`
+			Installed []KegInfo `json:"installed"`
+			Versions  struct {
+				Stable string `json:"stable"`
+				Head   string `json:"head"`
+			} `json:"versions"`
+			Dependencies []string `json:"dependencies"`
+		} `json:"formulae"`
+		Casks []struct {
+			Name        string `json:"name"`
+			FullName    string `json:"full_name"`
+			Tap         string `json:"tap"`
+			Desc        string `json:"desc"`
+			Homepage    string `json:"homepage"`
+			Version     string `json:"version"`
+			Installed   string `json:"installed"`
+			AutoUpdates bool   `json:"auto_updates"`
+			Token       string `json:"token"`
+		} `json:"casks"`
+	}
+	if err := json.Unmarshal([]byte(stdout), &raw); err != nil {
+		return nil, err
+	}
+
+	pkgType := strings.ToLower(strings.TrimSpace(packageType))
+	pkgName := strings.TrimSpace(name)
+	if pkgType == "cask" {
+		for _, c := range raw.Casks {
+			if !samePackageName(c.Name, c.Token, pkgName) {
+				continue
+			}
+			return &PackageInfoResult{
+				Type:             "cask",
+				Name:             c.Name,
+				FullName:         firstNonEmpty(c.FullName, c.Name, c.Token),
+				Tap:              c.Tap,
+				Desc:             c.Desc,
+				Homepage:         c.Homepage,
+				CurrentVersion:   c.Version,
+				InstalledVersion: c.Installed,
+				AutoUpdates:      c.AutoUpdates,
+				Token:            c.Token,
+			}, nil
+		}
+		return nil, &BrewError{Code: "NOT_FOUND", Message: "Package not found: " + pkgName}
+	}
+
+	for _, f := range raw.Formulae {
+		if !samePackageName(f.Name, f.FullName, pkgName) {
+			continue
+		}
+		installedVersion := ""
+		if len(f.Installed) > 0 {
+			installedVersion = f.Installed[0].Version
+		}
+		return &PackageInfoResult{
+			Type:             "formula",
+			Name:             f.Name,
+			FullName:         firstNonEmpty(f.FullName, f.Name),
+			Tap:              f.Tap,
+			Desc:             f.Desc,
+			Homepage:         f.Homepage,
+			License:          f.License,
+			CurrentVersion:   f.Versions.Stable,
+			InstalledVersion: installedVersion,
+			LinkedKeg:        f.LinkedKeg,
+			Pinned:           f.Pinned,
+			Installed:        f.Installed,
+			Dependencies:     f.Dependencies,
+		}, nil
+	}
+
+	return nil, &BrewError{Code: "NOT_FOUND", Message: "Package not found: " + pkgName}
+}
+
+func samePackageName(primary, secondary, expected string) bool {
+	expected = strings.ToLower(strings.TrimSpace(expected))
+	return strings.ToLower(strings.TrimSpace(primary)) == expected || strings.ToLower(strings.TrimSpace(secondary)) == expected
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func parseInstalledFromInfoJSON(stdout string) ([]FormulaInfo, []CaskInfo, error) {

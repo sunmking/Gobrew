@@ -27,7 +27,9 @@ export interface FormulaInstalled {
   desc: string
   homepage: string
   license: string
-  versions: { stable: string }
+  stable_version?: string
+  head_version?: string
+  versions?: { stable: string }
   installed: Array<{
     version: string
     installed_as_dependency: boolean
@@ -101,6 +103,43 @@ export interface SearchResult {
     desc: string
     tap: string
   }>
+}
+
+export type PackageType = 'formula' | 'cask'
+
+export interface PackageInfoResult {
+  type: PackageType
+  name: string
+  full_name: string
+  tap: string
+  desc: string
+  homepage: string
+  license: string
+  current_version: string
+  installed_version: string
+  linked_keg: string
+  pinned: boolean
+  auto_updates: boolean
+  token: string
+  installed: Array<{
+    version: string
+    installed_as_dependency: boolean
+    installed_on_request: boolean
+  }>
+  dependencies: string[]
+}
+
+export interface PackageRow {
+  key: string
+  type: PackageType
+  name: string
+  fullName: string
+  desc: string
+  tap: string
+  installedVersion: string
+  latestVersion: string
+  installed: boolean
+  updateAvailable: boolean
 }
 
 export interface BrewError {

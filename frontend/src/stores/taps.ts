@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
 import * as TapService from '../../bindings/changeme/services/tapservice.js'
-import type { TapInfo } from '@/types/brew'
+import type { TapDetail, TapInfo } from '@/types/brew'
 
 export const useTapsStore = defineStore('taps', {
   state: () => ({
     taps: [] as TapInfo[],
+    selectedDetail: null as TapDetail | null,
     loading: false,
     error: '',
   }),
@@ -29,6 +30,11 @@ export const useTapsStore = defineStore('taps', {
     async remove(name: string) {
       await TapService.Remove(name)
       await this.fetchTaps()
+    },
+    async details(name: string) {
+      const result = await TapService.Details(name)
+      this.selectedDetail = (result as unknown) as TapDetail
+      return this.selectedDetail
     },
   },
 })
