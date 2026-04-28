@@ -11,6 +11,7 @@ vars:
 
   # Docker image for cross-compilation (used when building on non-macOS)
   CROSS_IMAGE: wails-cross
+  DMG_NAME: '{{.APP_NAME}}-{{.VERSION | default "latest"}}-macOS.dmg'
 
 tasks:
   build:
@@ -134,6 +135,23 @@ tasks:
       - task: build:universal
     cmds:
       - task: create:app:bundle
+
+  package:dmg:
+    summary: Packages the application into a `.dmg` installer with install guide
+    deps:
+      - task: package
+    preconditions:
+      - sh: '[ "{{OS}}" = "darwin" ]'
+        msg: "DMG packaging requires macOS (hdiutil)."
+    cmds:
+      - rm -rf "{{.BIN_DIR}}/dmg-root"
+      - mkdir -p "{{.BIN_DIR}}/dmg-root"
+      - cp -R "{{.BIN_DIR}}/{{.APP_NAME}}.app" "{{.BIN_DIR}}/dmg-root/"
+      - ln -s /Applications "{{.BIN_DIR}}/dmg-root/Applications"
+      - cp "build/darwin/DMG_INSTALL_README.txt" "{{.BIN_DIR}}/dmg-root/INSTALL.txt"
+      - rm -f "{{.BIN_DIR}}/{{.DMG_NAME}}"
+      - hdiutil create -volname "{{.APP_NAME}}" -srcfolder "{{.BIN_DIR}}/dmg-root" -ov -format UDZO "{{.BIN_DIR}}/{{.DMG_NAME}}"
+      - echo "Created DMG: {{.BIN_DIR}}/{{.DMG_NAME}}"
 
 
   create:app:bundle:
