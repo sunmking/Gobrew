@@ -1,6 +1,6 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-  status?: 'installed' | 'update' | 'not-installed' | 'running' | 'stopped' | 'error' | 'neutral'
+  status?: 'installed' | 'update' | 'pinned' | 'not-installed' | 'running' | 'stopped' | 'error' | 'neutral'
 }>(), {
   status: 'neutral',
 })

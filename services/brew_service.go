@@ -262,7 +262,11 @@ func (b *BrewService) UninstallCask(ctx context.Context, name string, zap bool) 
 
 func (b *BrewService) Upgrade(ctx context.Context, name string) error {
 	start := time.Now()
-	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, "upgrade", name)
+	stdout, stderr, err := runBrewCommandWithEvents(ctx, b.app, "upgrade", name)
+	if err != nil && isPinnedUpgradeNotice(commandMessage(stdout, stderr)) {
+		b.emitComplete(true, stderr, start)
+		return nil
+	}
 	b.emitComplete(err == nil, stderr, start)
 	if err != nil {
 		return &BrewError{Code: "UPGRADE_FAILED", Message: "Failed to upgrade " + name, Details: stderr}
@@ -270,9 +274,41 @@ func (b *BrewService) Upgrade(ctx context.Context, name string) error {
 	return nil
 }
 
+func (b *BrewService) Pin(ctx context.Context, name string) error {
+	args, argErr := pinCommandArgs(name, true)
+	if argErr != nil {
+		return argErr
+	}
+	start := time.Now()
+	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, args...)
+	b.emitComplete(err == nil, stderr, start)
+	if err != nil {
+		return &BrewError{Code: "PIN_FAILED", Message: "Failed to pin " + name, Details: stderr}
+	}
+	return nil
+}
+
+func (b *BrewService) Unpin(ctx context.Context, name string) error {
+	args, argErr := pinCommandArgs(name, false)
+	if argErr != nil {
+		return argErr
+	}
+	start := time.Now()
+	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, args...)
+	b.emitComplete(err == nil, stderr, start)
+	if err != nil {
+		return &BrewError{Code: "UNPIN_FAILED", Message: "Failed to unpin " + name, Details: stderr}
+	}
+	return nil
+}
+
 func (b *BrewService) UpgradeAll(ctx context.Context) error {
 	start := time.Now()
-	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, "upgrade")
+	stdout, stderr, err := runBrewCommandWithEvents(ctx, b.app, "upgrade")
+	if err != nil && isPinnedUpgradeNotice(commandMessage(stdout, stderr)) {
+		b.emitComplete(true, stderr, start)
+		return nil
+	}
 	b.emitComplete(err == nil, stderr, start)
 	if err != nil {
 		return &BrewError{Code: "UPGRADE_ALL_FAILED", Message: "Failed to upgrade all packages", Details: stderr}
@@ -794,6 +830,22 @@ func containsUnsupportedJSONOption(text string) bool {
 func isBrewUpdateLocked(text string) bool {
 	msg := strings.ToLower(text)
 	return strings.Contains(msg, "already locked") && strings.Contains(msg, "another `brew update` process is already running")
+}
+
+func isPinnedUpgradeNotice(text string) bool {
+	msg := strings.ToLower(text)
+	return strings.Contains(msg, "not upgrading") && strings.Contains(msg, "pinned package")
+}
+
+func pinCommandArgs(name string, pin bool) ([]string, error) {
+	pkgName := strings.TrimSpace(name)
+	if pkgName == "" {
+		return nil, &BrewError{Code: "INVALID_ARGUMENT", Message: "Package name is required"}
+	}
+	if pin {
+		return []string{"pin", pkgName}, nil
+	}
+	return []string{"unpin", pkgName}, nil
 }
 
 func stringValue(v any) string {

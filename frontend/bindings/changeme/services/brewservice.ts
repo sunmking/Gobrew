@@ -79,6 +79,10 @@ export function PackageInfo(name: string, packageType: string): $CancellableProm
     });
 }
 
+export function Pin(name: string): $CancellablePromise<void> {
+    return $Call.ByID(3061031924, name);
+}
+
 export function Reinstall(name: string, isCask: boolean): $CancellablePromise<void> {
     return $Call.ByID(142764307, name, isCask);
 }
@@ -99,6 +103,10 @@ export function Uninstall(name: string): $CancellablePromise<void> {
 
 export function UninstallCask(name: string, zap: boolean): $CancellablePromise<void> {
     return $Call.ByID(1347681203, name, zap);
+}
+
+export function Unpin(name: string): $CancellablePromise<void> {
+    return $Call.ByID(1784520513, name);
 }
 
 export function Update(): $CancellablePromise<void> {

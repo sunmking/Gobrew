@@ -140,6 +140,7 @@ export interface PackageRow {
   latestVersion: string
   installed: boolean
   updateAvailable: boolean
+  pinned: boolean
 }
 
 export interface BrewError {

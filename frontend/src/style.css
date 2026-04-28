@@ -216,9 +216,11 @@ button, input, textarea { font: inherit; }
 .pill { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 99px; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .pill-installed, .pill-running { background: oklch(93% 0.04 145); color: oklch(38% 0.14 145); }
 .pill-update { background: var(--accent-bg); color: var(--accent); }
+.pill-pinned { background: oklch(94% 0.04 70); color: oklch(38% 0.13 70); }
 .pill-not-installed, .pill-neutral, .pill-stopped { background: var(--border); color: var(--muted); }
 .pill-error { background: oklch(94% 0.04 25); color: oklch(40% 0.18 25); }
 [data-theme="dark"] .pill-installed, [data-theme="dark"] .pill-running { background: oklch(25% 0.08 145); color: oklch(72% 0.14 145); }
+[data-theme="dark"] .pill-pinned { background: oklch(25% 0.08 70); color: oklch(78% 0.14 70); }
 [data-theme="dark"] .pill-error { background: oklch(25% 0.08 25); color: oklch(72% 0.18 25); }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }

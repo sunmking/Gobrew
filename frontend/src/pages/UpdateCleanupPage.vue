@@ -18,6 +18,7 @@ const autoremoveOutput = ref('')
 const error = ref('')
 
 const totalOutdated = computed(() => updateStore.formulae.length + updateStore.casks.length)
+const totalPinned = computed(() => updateStore.formulae.filter(item => item.pinned).length)
 const tabs = [
   { label: '待更新', value: 'upgrades' },
   { label: '清理', value: 'cleanup' },
@@ -60,7 +61,7 @@ onMounted(refresh)
         <StatCard label="可更新" :value="totalOutdated" sub="个包有新版本" tone="accent" />
         <StatCard label="Formulae" :value="updateStore.formulae.length" sub="命令行包" />
         <StatCard label="Casks" :value="updateStore.casks.length" sub="应用包" />
-        <StatCard label="清理候选" :value="cleanupOutput ? cleanupOutput.split('\n').filter(Boolean).length : 0" sub="dry-run 输出行" tone="warn" />
+        <StatCard label="Pinned" :value="totalPinned" sub="锁定不更新" tone="warn" />
       </div>
     </div>
     <div class="toolbar">
@@ -76,8 +77,13 @@ onMounted(refresh)
         <thead><tr><th>包名</th><th>类型</th><th>当前版本</th><th>最新版本</th><th>状态</th><th></th></tr></thead>
         <tbody>
           <tr v-for="item in updateStore.formulae" :key="`f-${item.name}`">
-            <td class="pkg-name">{{ item.name }}</td><td>Formula</td><td class="pkg-version">{{ item.installed_versions?.join(', ') }}</td><td class="pkg-version">{{ item.current_version }}</td><td><StatusPill status="update">可更新</StatusPill></td>
-            <td style="text-align:right;"><BrewButton variant="primary" @click="run(`upgrade ${item.name}`, () => updateStore.upgrade(item.name))">更新</BrewButton></td>
+            <td class="pkg-name">{{ item.name }}</td><td>Formula</td><td class="pkg-version">{{ item.installed_versions?.join(', ') }}</td><td class="pkg-version">{{ item.current_version }}</td><td><StatusPill :status="item.pinned ? 'pinned' : 'update'">{{ item.pinned ? '已锁定' : '可更新' }}</StatusPill></td>
+            <td style="text-align:right;">
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <BrewButton v-if="item.pinned" @click="run(`unpin ${item.name}`, () => BrewService.Unpin(item.name))">解锁</BrewButton>
+                <BrewButton v-else variant="primary" @click="run(`upgrade ${item.name}`, () => updateStore.upgrade(item.name))">更新</BrewButton>
+              </div>
+            </td>
           </tr>
           <tr v-for="item in updateStore.casks" :key="`c-${item.name}`">
             <td class="pkg-name">{{ item.name }}</td><td>Cask</td><td class="pkg-version">{{ item.installed_version }}</td><td class="pkg-version">{{ item.current_version }}</td><td><StatusPill status="update">可更新</StatusPill></td>

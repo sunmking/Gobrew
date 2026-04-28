@@ -20,6 +20,38 @@ func TestCountNonEmptyLines(t *testing.T) {
 	}
 }
 
+func TestIsPinnedUpgradeNotice(t *testing.T) {
+	input := "Error: Not upgrading 1 pinned package:\nnode 23.0.0\n"
+	if !isPinnedUpgradeNotice(input) {
+		t.Fatalf("expected pinned upgrade notice to be detected")
+	}
+	if isPinnedUpgradeNotice("Error: Failed to download bottle") {
+		t.Fatalf("expected unrelated errors to stay failures")
+	}
+}
+
+func TestPinCommandArgs(t *testing.T) {
+	pinArgs, err := pinCommandArgs("node", true)
+	if err != nil {
+		t.Fatalf("pinCommandArgs returned error: %v", err)
+	}
+	if len(pinArgs) != 2 || pinArgs[0] != "pin" || pinArgs[1] != "node" {
+		t.Fatalf("unexpected pin args: %#v", pinArgs)
+	}
+
+	unpinArgs, err := pinCommandArgs("node", false)
+	if err != nil {
+		t.Fatalf("pinCommandArgs returned error: %v", err)
+	}
+	if len(unpinArgs) != 2 || unpinArgs[0] != "unpin" || unpinArgs[1] != "node" {
+		t.Fatalf("unexpected unpin args: %#v", unpinArgs)
+	}
+
+	if _, err := pinCommandArgs(" ", true); err == nil {
+		t.Fatalf("expected empty package name to fail")
+	}
+}
+
 func TestParsePackageInfoJSONIncludesCask(t *testing.T) {
 	raw := `{"formulae":[],"casks":[{"name":"visual-studio-code","full_name":"visual-studio-code","tap":"homebrew/cask","desc":"Open-source code editor","homepage":"https://code.visualstudio.com/","version":"1.99.0","installed":"1.98.2","auto_updates":true,"token":"visual-studio-code"}]}`
 	info, err := parsePackageInfoJSON(raw, "visual-studio-code", "cask")

@@ -34,7 +34,7 @@ function formulaVersion(item: any) {
 
 function upsert(rows: Map<string, PackageRow>, row: PackageRow) {
   const current = rows.get(row.key)
-  rows.set(row.key, current ? { ...current, ...row, installed: current.installed || row.installed, updateAvailable: current.updateAvailable || row.updateAvailable } : row)
+  rows.set(row.key, current ? { ...current, ...row, installed: current.installed || row.installed, updateAvailable: current.updateAvailable || row.updateAvailable, pinned: current.pinned || row.pinned } : row)
 }
 
 const rows = computed(() => {
@@ -52,6 +52,7 @@ const rows = computed(() => {
       latestVersion: item.stable_version || item.versions?.stable || formulaVersion(item),
       installed: true,
       updateAvailable: false,
+      pinned: item.pinned,
     })
   }
   for (const item of installedStore.casks) {
@@ -67,6 +68,7 @@ const rows = computed(() => {
       latestVersion: item.version,
       installed: true,
       updateAvailable: false,
+      pinned: false,
     })
   }
   for (const item of updateStore.formulae) {
@@ -81,6 +83,7 @@ const rows = computed(() => {
       latestVersion: item.current_version,
       installed: true,
       updateAvailable: true,
+      pinned: item.pinned,
     })
   }
   for (const item of updateStore.casks) {
@@ -95,6 +98,7 @@ const rows = computed(() => {
       latestVersion: item.current_version,
       installed: true,
       updateAvailable: true,
+      pinned: false,
     })
   }
   for (const item of searchStore.results.formulae) {
@@ -109,6 +113,7 @@ const rows = computed(() => {
       latestVersion: '',
       installed: false,
       updateAvailable: false,
+      pinned: false,
     })
   }
   for (const item of searchStore.results.casks) {
@@ -123,6 +128,7 @@ const rows = computed(() => {
       latestVersion: '',
       installed: false,
       updateAvailable: false,
+      pinned: false,
     })
   }
 
@@ -145,11 +151,13 @@ function select(row: PackageRow) {
   router.push(`/packages/${row.type}/${encodeURIComponent(row.name)}`)
 }
 
-async function runAction(action: 'install' | 'upgrade' | 'uninstall', row: PackageRow) {
+async function runAction(action: 'install' | 'upgrade' | 'uninstall' | 'pin' | 'unpin', row: PackageRow) {
   logStore.startListening(`${action} ${row.name}`)
   try {
     if (action === 'install') await BrewService.Install(row.name)
     if (action === 'upgrade') await BrewService.Upgrade(row.name)
+    if (action === 'pin') await BrewService.Pin(row.name)
+    if (action === 'unpin') await BrewService.Unpin(row.name)
     if (action === 'uninstall') {
       if (row.type === 'cask') await BrewService.UninstallCask(row.name, false)
       else await BrewService.Uninstall(row.name)
@@ -176,7 +184,15 @@ onMounted(refresh)
       <p class="error-text">{{ installedStore.error || updateStore.error || searchStore.error }}</p>
     </div>
     <div v-else class="content-body" style="padding-top:0;">
-      <PackageTable :rows="rows" @select="select" @install="runAction('install', $event)" @upgrade="runAction('upgrade', $event)" @uninstall="runAction('uninstall', $event)" />
+      <PackageTable
+        :rows="rows"
+        @select="select"
+        @install="runAction('install', $event)"
+        @upgrade="runAction('upgrade', $event)"
+        @uninstall="runAction('uninstall', $event)"
+        @pin="runAction('pin', $event)"
+        @unpin="runAction('unpin', $event)"
+      />
       <div v-if="rows.length === 0" class="empty-state">没有匹配的包</div>
     </div>
   </section>
