@@ -1,0 +1,858 @@
+
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head><script>(function(){
+  function makeStore(){
+    var data = {};
+    var api = {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null; },
+      setItem: function(k, v){ data[k] = String(v); },
+      removeItem: function(k){ delete data[k]; },
+      clear: function(){ data = {}; },
+      key: function(i){ return Object.keys(data)[i] || null; }
+    };
+    Object.defineProperty(api, 'length', { get: function(){ return Object.keys(data).length; } });
+    return api;
+  }
+  function tryShim(name){
+    var works = false;
+    try { works = !!window[name] && typeof window[name].getItem === 'function'; void window[name].length; }
+    catch (_) { works = false; }
+    if (works) return;
+    try { Object.defineProperty(window, name, { configurable: true, value: makeStore() }); }
+    catch (_) { try { window[name] = makeStore(); } catch (__) {} }
+  }
+  tryShim('localStorage');
+  tryShim('sessionStorage');
+})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gobrew</title>
+<style>
+/* ── Design tokens ── */
+:root {
+  --bg:      oklch(99% 0.002 240);
+  --surface: oklch(100% 0 0);
+  --fg:      oklch(18% 0.012 250);
+  --muted:   oklch(54% 0.012 250);
+  --border:  oklch(92% 0.005 250);
+  --accent:  oklch(58% 0.18 255);
+  --accent-bg: oklch(95% 0.03 255);
+  --danger:  oklch(55% 0.18 25);
+  --warning: oklch(68% 0.15 70);
+  --success: oklch(58% 0.16 145);
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --radius-sm: 4px;
+  --radius:    6px;
+  --radius-lg: 10px;
+  --sidebar-w: 200px;
+  --titlebar-h: 40px;
+}
+
+[data-theme="dark"] {
+  --bg:      oklch(14% 0.01 250);
+  --surface: oklch(18% 0.012 250);
+  --fg:      oklch(92% 0.008 250);
+  --muted:   oklch(55% 0.01 250);
+  --border:  oklch(26% 0.012 250);
+  --accent:  oklch(65% 0.18 255);
+  --accent-bg: oklch(22% 0.04 255);
+  --danger:  oklch(62% 0.18 25);
+  --warning: oklch(72% 0.15 70);
+  --success: oklch(65% 0.16 145);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: oklch(20% 0.015 250);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.window {
+  width: 1100px; height: 720px;
+  background: var(--bg);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 32px 80px oklch(0% 0 0 / 0.5), 0 0 0 0.5px oklch(0% 0 0 / 0.3);
+}
+
+/* Title bar */
+.titlebar {
+  height: var(--titlebar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 8px;
+  flex-shrink: 0; user-select: none;
+}
+.traffic-lights { display: flex; gap: 6px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+.dot-close { background: oklch(62% 0.22 25); }
+.dot-min   { background: oklch(72% 0.2 70); }
+.dot-max   { background: oklch(62% 0.2 145); }
+.titlebar-title { flex:1; text-align:center; font-size:13px; font-weight:500; letter-spacing:-0.01em; color:var(--fg); }
+.titlebar-actions { display:flex; gap:4px; }
+
+.btn-icon {
+  width:28px; height:28px; border:none; background:transparent;
+  border-radius:var(--radius-sm); cursor:pointer; color:var(--muted);
+  display:flex; align-items:center; justify-content:center; font-size:14px;
+  transition: background 0.1s, color 0.1s;
+}
+.btn-icon:hover { background:var(--border); color:var(--fg); }
+
+/* App body */
+.app-body { display:flex; flex:1; overflow:hidden; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction:column;
+  padding: 12px 8px; gap:2px; flex-shrink:0;
+}
+.sidebar-section-label {
+  font-size:10px; font-weight:600; letter-spacing:0.08em;
+  text-transform:uppercase; color:var(--muted);
+  padding: 8px 8px 4px; margin-top:4px;
+}
+.nav-item {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 8px; border-radius:var(--radius);
+  cursor:pointer; font-size:13px; font-weight:450;
+  color:var(--muted); transition:background 0.1s, color 0.1s;
+  border:none; background:transparent; text-align:left; width:100%;
+  font-family: var(--font-body);
+}
+.nav-item:hover { background:var(--border); color:var(--fg); }
+.nav-item.active { background:var(--accent-bg); color:var(--accent); font-weight:500; }
+.nav-icon { width:16px; text-align:center; font-size:13px; }
+.nav-badge {
+  margin-left:auto; background:var(--accent); color:white;
+  font-size:10px; font-weight:600; padding:1px 5px;
+  border-radius:10px; font-variant-numeric:tabular-nums;
+}
+.nav-badge.warn { background:var(--warning); color:oklch(22% 0.02 50); }
+.sidebar-footer { margin-top:auto; padding-top:8px; border-top:1px solid var(--border); }
+
+/* Content */
+.content { flex:1; overflow-y:auto; background:var(--bg); display:none; }
+.content.active { display:flex; flex-direction:column; }
+.content-header { padding:20px 24px 0; flex-shrink:0; }
+.content-title { font-size:20px; font-weight:600; letter-spacing:-0.02em; color:var(--fg); }
+.content-subtitle { font-size:13px; color:var(--muted); margin-top:3px; }
+.content-body { padding:16px 24px 24px; flex:1; }
+
+/* Search */
+.search-wrap { position:relative; flex:1; max-width:360px; }
+.search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none; }
+.search-input {
+  width:100%; height:32px; padding:0 10px 0 32px;
+  border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); color:var(--fg);
+  font-family:var(--font-body); font-size:13px; outline:none;
+  transition:border-color 0.15s, box-shadow 0.15s;
+}
+.search-input:focus { border-color:var(--accent); box-shadow:0 0 0 2px oklch(58% 0.18 255 / 0.15); }
+.search-input::placeholder { color:var(--muted); }
+
+/* Toolbar */
+.toolbar {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 24px; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+
+/* Buttons */
+.btn {
+  height:30px; padding:0 12px; border-radius:var(--radius);
+  font-family:var(--font-body); font-size:13px; font-weight:500;
+  cursor:pointer; display:inline-flex; align-items:center; gap:5px;
+  border:1px solid transparent; transition:background 0.1s, border-color 0.1s, opacity 0.1s;
+  white-space:nowrap;
+}
+.btn:disabled { opacity:0.4; cursor:default; }
+.btn-primary { background:var(--accent); color:white; border-color:var(--accent); }
+.btn-primary:hover:not(:disabled) { filter:brightness(0.92); }
+.btn-secondary { background:var(--surface); color:var(--fg); border-color:var(--border); }
+.btn-secondary:hover { background:var(--border); }
+.btn-ghost { background:transparent; color:var(--muted); border-color:transparent; }
+.btn-ghost:hover { background:var(--border); color:var(--fg); }
+.btn-danger { background:var(--danger); color:white; border-color:var(--danger); }
+.btn-danger:hover:not(:disabled) { filter:brightness(0.9); }
+
+/* Tabs */
+.tabs { display:flex; border-bottom:1px solid var(--border); padding:0 24px; flex-shrink:0; }
+.tab {
+  padding:10px 14px; font-size:13px; font-weight:450;
+  color:var(--muted); cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+  transition:color 0.1s, border-color 0.1s;
+  background:none; border-top:none; border-left:none; border-right:none;
+  font-family:var(--font-body);
+}
+.tab:hover { color:var(--fg); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:500; }
+
+/* Table */
+.pkg-table { width:100%; border-collapse:collapse; font-size:13px; }
+.pkg-table th {
+  text-align:left; padding:8px 12px;
+  font-size:11px; font-weight:600; letter-spacing:0.06em;
+  text-transform:uppercase; color:var(--muted);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; background:var(--bg); z-index:1;
+}
+.pkg-table td { padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:middle; color:var(--fg); }
+.pkg-table tr:hover td { background:oklch(97% 0.015 255); }
+[data-theme="dark"] .pkg-table tr:hover td { background:oklch(20% 0.02 255); }
+.pkg-table td:first-child, .pkg-table th:first-child { padding-left:8px; }
+.pkg-name { font-weight:500; font-family:var(--font-mono); font-size:12.5px; color:var(--fg); }
+.pkg-desc { color:var(--muted); font-size:12px; max-width:280px; }
+.pkg-version { font-family:var(--font-mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.pkg-version.update-avail { color:var(--accent); }
+
+/* Pills */
+.pill { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:99px; font-size:11px; font-weight:500; white-space:nowrap; }
+.pill-installed { background:oklch(93% 0.04 145); color:oklch(38% 0.14 145); }
+.pill-update    { background:oklch(93% 0.04 255); color:oklch(38% 0.18 255); }
+.pill-notinst   { background:var(--border); color:var(--muted); }
+.pill-running   { background:oklch(93% 0.04 145); color:oklch(38% 0.14 145); }
+.pill-stopped   { background:var(--border); color:var(--muted); }
+.pill-error     { background:oklch(94% 0.04 25); color:oklch(40% 0.18 25); }
+[data-theme="dark"] .pill-installed { background:oklch(25% 0.08 145); color:oklch(72% 0.14 145); }
+[data-theme="dark"] .pill-update    { background:oklch(25% 0.08 255); color:oklch(72% 0.18 255); }
+[data-theme="dark"] .pill-notinst   { background:oklch(26% 0.01 250); color:var(--muted); }
+[data-theme="dark"] .pill-running   { background:oklch(25% 0.08 145); color:oklch(72% 0.14 145); }
+[data-theme="dark"] .pill-stopped   { background:oklch(26% 0.01 250); color:var(--muted); }
+[data-theme="dark"] .pill-error     { background:oklch(25% 0.08 25); color:oklch(72% 0.18 25); }
+
+.cb { width:14px; height:14px; accent-color:var(--accent); cursor:pointer; }
+
+/* Detail layout */
+.detail-grid { display:grid; grid-template-columns:1fr 280px; gap:20px; }
+.detail-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; }
+.detail-card-title { font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.meta-row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.meta-row:last-child { border-bottom:none; }
+.meta-label { color:var(--muted); }
+.meta-value { font-family:var(--font-mono); font-size:11.5px; color:var(--fg); }
+.dep-tag { display:inline-block; background:var(--border); color:var(--fg); font-family:var(--font-mono); font-size:11px; padding:2px 6px; border-radius:var(--radius-sm); margin:2px; }
+
+/* Terminal */
+.terminal {
+  background:oklch(12% 0.01 250); border-radius:var(--radius);
+  padding:12px 14px; font-family:var(--font-mono); font-size:12px;
+  color:oklch(82% 0.02 250); min-height:100px; line-height:1.6;
+  overflow-y:auto; max-height:160px;
+}
+.terminal .t-prompt { color:oklch(65% 0.18 145); }
+.terminal .t-cmd    { color:oklch(82% 0.02 250); }
+.terminal .t-out    { color:oklch(60% 0.02 250); }
+.terminal .t-ok     { color:oklch(65% 0.18 145); }
+.terminal .t-err    { color:oklch(65% 0.18 25); }
+
+/* Stats */
+.stat-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; margin-bottom:20px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; }
+.stat-label { font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.stat-value { font-size:28px; font-weight:700; letter-spacing:-0.03em; color:var(--fg); font-variant-numeric:tabular-nums; }
+.stat-value.accent { color:var(--accent); }
+.stat-value.warn   { color:var(--warning); }
+.stat-sub   { font-size:11px; color:var(--muted); margin-top:3px; }
+
+/* Tap card */
+.tap-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:14px 16px; display:flex; align-items:center; gap:12px; margin-bottom:8px; transition:border-color 0.15s; }
+.tap-card:hover { border-color:var(--accent); }
+.tap-icon { font-size:20px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:var(--border); border-radius:8px; flex-shrink:0; }
+.tap-info { flex:1; min-width:0; }
+.tap-name { font-size:13px; font-weight:500; font-family:var(--font-mono); color:var(--fg); }
+.tap-url  { font-size:11.5px; color:var(--muted); margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tap-pkg-count { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* Brewfile */
+.brew-textarea { width:100%; height:240px; font-family:var(--font-mono); font-size:12.5px; line-height:1.7; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--fg); padding:12px 14px; resize:vertical; outline:none; transition:border-color 0.15s; }
+.brew-textarea:focus { border-color:var(--accent); }
+
+/* Misc */
+.section-title { font-size:11px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.divider { height:1px; background:var(--border); margin:16px 0; }
+code { font-family:var(--font-mono); font-size:0.88em; background:var(--border); padding:1px 5px; border-radius:3px; color:var(--fg); }
+
+/* Toaster */
+.toaster { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none; }
+.toast { background:var(--fg); color:var(--bg); padding:10px 14px; border-radius:var(--radius); font-size:13px; font-weight:450; animation:slide-in 0.2s ease; max-width:300px; display:flex; align-items:center; gap:8px; }
+@keyframes slide-in { from { transform:translateX(20px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="window" id="app">
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="traffic-lights">
+      <div class="dot dot-close"></div>
+      <div class="dot dot-min"></div>
+      <div class="dot dot-max"></div>
+    </div>
+    <div class="titlebar-title">Gobrew</div>
+    <div class="titlebar-actions">
+      <button class="btn-icon" id="btn-theme" title="切换深色/浅色">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zm0 14V4a6 6 0 0 1 0 12z"/>
+        </svg>
+      </button>
+      <button class="btn-icon" title="通知">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 2a6 6 0 0 0-6 6v3l-1.5 2V14h15v-1l-1.5-2V8a6 6 0 0 0-6-6zm0 16a2 2 0 0 0 2-2H8a2 2 0 0 0 2 2z"/>
+        </svg>
+      </button>
+      <button class="btn-icon" title="设置" onclick="showToast('⚙', '偏好设置（暂未实现）')">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm7.2 2.1-.5-.1a6.9 6.9 0 0 0-.5-1.2l.3-.4a1 1 0 0 0-.1-1.4l-1-1a1 1 0 0 0-1.4-.1l-.4.3a6.9 6.9 0 0 0-1.2-.5l-.1-.5A1 1 0 0 0 11.3 3H8.7a1 1 0 0 0-1 .9l-.1.5a6.9 6.9 0 0 0-1.2.5l-.4-.3a1 1 0 0 0-1.4.1l-1 1a1 1 0 0 0-.1 1.4l.3.4a6.9 6.9 0 0 0-.5 1.2l-.5.1a1 1 0 0 0-.8 1v1.4a1 1 0 0 0 .8 1l.5.1c.1.4.3.8.5 1.2l-.3.4a1 1 0 0 0 .1 1.4l1 1a1 1 0 0 0 1.4.1l.4-.3c.4.2.8.4 1.2.5l.1.5a1 1 0 0 0 1 .8h1.4a1 1 0 0 0 1-.8l.1-.5c.4-.1.8-.3 1.2-.5l.4.3a1 1 0 0 0 1.4-.1l1-1a1 1 0 0 0 .1-1.4l-.3-.4c.2-.4.4-.8.5-1.2l.5-.1a1 1 0 0 0 .8-1V10.1a1 1 0 0 0-.8-1z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- App body -->
+  <div class="app-body">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section-label">包管理</div>
+      <button class="nav-item active" data-screen="packages" onclick="navigate(this)">
+        <span class="nav-icon">⬡</span><span>所有包</span>
+        <span class="nav-badge warn" id="badge-update">3</span>
+      </button>
+      <button class="nav-item" data-screen="update" onclick="navigate(this)">
+        <span class="nav-icon">↻</span><span>更新 &amp; 清理</span>
+        <span class="nav-badge">7</span>
+      </button>
+      <div class="sidebar-section-label">资源</div>
+      <button class="nav-item" data-screen="taps" onclick="navigate(this)">
+        <span class="nav-icon">⌂</span><span>Taps</span>
+      </button>
+      <button class="nav-item" data-screen="services" onclick="navigate(this)">
+        <span class="nav-icon">◎</span><span>Services</span>
+      </button>
+      <button class="nav-item" data-screen="brewfile" onclick="navigate(this)">
+        <span class="nav-icon">≡</span><span>Brewfile</span>
+      </button>
+      <div class="sidebar-footer">
+        <button class="nav-item" onclick="showToast('✓', 'Homebrew 已是最新版本 4.4.2')">
+          <span class="nav-icon" style="font-size:10px;">⬡</span>
+          <span style="color:var(--muted); font-size:12px;">Homebrew 4.4.2</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ── Screen 1: Package list ── -->
+    <div class="content active" id="screen-packages">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="pkg-search" type="text" placeholder="搜索包名称或描述…" oninput="filterPackages(this.value)">
+        </div>
+        <div style="margin-left:auto; display:flex; gap:6px; align-items:center;">
+          <div style="display:flex; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
+            <button class="tab active" style="border-bottom:none; padding:4px 12px; margin-bottom:0;" onclick="setPkgFilter('all',this)">全部</button>
+            <button class="tab" style="border-bottom:none; padding:4px 12px; border-left:1px solid var(--border); margin-bottom:0;" onclick="setPkgFilter('installed',this)">已安装</button>
+            <button class="tab" style="border-bottom:none; padding:4px 12px; border-left:1px solid var(--border); margin-bottom:0;" onclick="setPkgFilter('update',this)">可更新</button>
+          </div>
+          <button class="btn btn-primary" onclick="showToast('🔍', '正在搜索 Homebrew 仓库…')">搜索</button>
+        </div>
+      </div>
+      <div style="overflow-y:auto; flex:1;">
+        <table class="pkg-table">
+          <thead><tr>
+            <th style="width:28px;"></th>
+            <th>包名</th><th>描述</th><th>当前版本</th><th>最新版本</th><th>状态</th>
+            <th style="width:80px;"></th>
+          </tr></thead>
+          <tbody id="pkg-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Screen 2: Package detail ── -->
+    <div class="content" id="screen-detail">
+      <div style="padding:16px 24px; display:flex; align-items:flex-start; gap:16px; border-bottom:1px solid var(--border); flex-shrink:0;">
+        <button class="btn btn-ghost" style="margin-top:3px;" onclick="navigate(document.querySelector('.nav-item[data-screen=packages]'))">← 返回</button>
+        <div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <h1 style="font-size:22px; font-weight:700; letter-spacing:-0.025em; font-family:var(--font-mono);" id="detail-name">wget</h1>
+            <span id="detail-status-pill" class="pill pill-installed">已安装</span>
+          </div>
+          <p style="font-size:13px; color:var(--muted); margin-top:4px;" id="detail-desc">Internet file retriever</p>
+        </div>
+        <div style="margin-left:auto; display:flex; gap:6px; align-items:flex-start; padding-top:3px;">
+          <button class="btn btn-secondary" onclick="showToast('ℹ', '已在终端中打开')">在终端中打开</button>
+          <button class="btn btn-primary" id="detail-action-btn" onclick="fakeInstall()">安装</button>
+        </div>
+      </div>
+      <div class="content-body" style="overflow-y:auto;">
+        <div class="detail-grid">
+          <div>
+            <div class="section-title">依赖项</div>
+            <div style="margin-bottom:16px;">
+              <span class="dep-tag">libidn2</span><span class="dep-tag">openssl@3</span>
+              <span class="dep-tag">pcre2</span><span class="dep-tag">zlib</span>
+            </div>
+            <div class="divider"></div>
+            <div class="section-title">可选依赖</div>
+            <div style="margin-bottom:16px;"><span class="dep-tag">ca-certificates</span></div>
+            <div class="divider"></div>
+            <div class="section-title">被依赖于</div>
+            <div style="margin-bottom:16px; color:var(--muted); font-size:13px;">无</div>
+            <div class="divider"></div>
+            <div class="section-title">安装日志</div>
+            <div class="terminal" id="detail-terminal">
+              <div><span class="t-prompt">$</span> <span class="t-cmd">brew install wget</span></div>
+              <div class="t-out">==> Downloading https://ghcr.io/v2/homebrew/core/wget/manifests/1.24.5</div>
+              <div class="t-out">==> Fetching wget</div>
+              <div class="t-ok">==> Pouring wget--1.24.5.arm64_sequoia.bottle.tar.gz</div>
+              <div class="t-ok">🍺  /opt/homebrew/Cellar/wget/1.24.5: 89 files, 4.2MB</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="detail-card">
+              <div class="detail-card-title">版本信息</div>
+              <div class="meta-row"><span class="meta-label">当前版本</span><span class="meta-value" id="detail-ver">1.24.5</span></div>
+              <div class="meta-row"><span class="meta-label">最新版本</span><span class="meta-value">1.24.5</span></div>
+              <div class="meta-row"><span class="meta-label">Tap</span><span class="meta-value">homebrew/core</span></div>
+              <div class="meta-row"><span class="meta-label">License</span><span class="meta-value">GPL-3.0</span></div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">安装路径</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--muted); line-height:1.6; word-break:break-all;">/opt/homebrew/Cellar/wget/1.24.5</div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">统计</div>
+              <div class="meta-row"><span class="meta-label">安装数</span><span class="meta-value">214,372</span></div>
+              <div class="meta-row"><span class="meta-label">大小</span><span class="meta-value">4.2 MB</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Screen 3: Update & cleanup ── -->
+    <div class="content" id="screen-update">
+      <div class="content-header">
+        <h1 class="content-title">更新 &amp; 清理</h1>
+        <p class="content-subtitle">批量管理待更新的包，清理旧版本和下载缓存</p>
+      </div>
+      <div style="padding:16px 24px 0;">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">可更新</div><div class="stat-value accent">3</div><div class="stat-sub">个包有新版本</div></div>
+          <div class="stat-card"><div class="stat-label">旧版本</div><div class="stat-value warn">4</div><div class="stat-sub">Cellar 中的旧版本</div></div>
+          <div class="stat-card"><div class="stat-label">缓存占用</div><div class="stat-value">1.2</div><div class="stat-sub">GB 可释放</div></div>
+          <div class="stat-card"><div class="stat-label">Pinned 包</div><div class="stat-value">0</div><div class="stat-sub">锁定不更新</div></div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="setUpdateTab('upgrades',this)">待更新 (3)</button>
+        <button class="tab" onclick="setUpdateTab('cleanup',this)">待清理 (4)</button>
+        <button class="tab" onclick="setUpdateTab('cache',this)">缓存</button>
+      </div>
+      <div style="overflow-y:auto; flex:1; padding:0 24px 24px;" id="update-tab-content"></div>
+    </div>
+
+    <!-- ── Screen 4: Taps ── -->
+    <div class="content" id="screen-taps">
+      <div class="content-header">
+        <h1 class="content-title">Taps</h1>
+        <p class="content-subtitle">管理 Homebrew 第三方仓库</p>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" type="text" placeholder="搜索 tap 名称或 URL…">
+        </div>
+        <button class="btn btn-primary" style="margin-left:auto;" onclick="showToast('＋', '请输入 tap 地址，例如 homebrew/cask-fonts')">添加 Tap</button>
+      </div>
+      <div style="padding:0 24px; overflow-y:auto; flex:1;" id="taps-list"></div>
+    </div>
+
+    <!-- ── Screen 5: Services ── -->
+    <div class="content" id="screen-services">
+      <div class="content-header">
+        <h1 class="content-title">Services</h1>
+        <p class="content-subtitle">管理 Homebrew 后台服务的启动、停止和重启</p>
+      </div>
+      <div class="toolbar">
+        <button class="btn btn-secondary" onclick="showToast('↺', '正在重启所有运行中的服务…')">全部重启</button>
+        <button class="btn btn-ghost" onclick="showToast('↻', '正在刷新服务状态…')">刷新状态</button>
+      </div>
+      <div style="overflow-y:auto; flex:1;">
+        <table class="pkg-table">
+          <thead><tr>
+            <th>服务名称</th><th>状态</th><th>用户</th><th>PID</th><th>自启动</th>
+            <th style="width:130px;"></th>
+          </tr></thead>
+          <tbody id="services-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Screen 6: Brewfile ── -->
+    <div class="content" id="screen-brewfile">
+      <div class="content-header">
+        <h1 class="content-title">Brewfile</h1>
+        <p class="content-subtitle">从 Brewfile 恢复环境，或将当前安装导出为 Brewfile</p>
+      </div>
+      <div class="content-body" style="overflow-y:auto;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div>
+            <div class="section-title" style="margin-bottom:8px;">编辑 Brewfile</div>
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+              <button class="btn btn-secondary" onclick="showToast('📋', '正在从当前环境生成 Brewfile…')">从环境导出</button>
+              <button class="btn btn-secondary" onclick="showToast('📂', '请选择 Brewfile 文件…')">打开文件…</button>
+            </div>
+            <textarea class="brew-textarea" id="brewfile-content" spellcheck="false">tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/core"
+tap "homebrew/cask-fonts"
+
+brew "bat"
+brew "curl"
+brew "fd"
+brew "fzf"
+brew "git"
+brew "gh"
+brew "jq"
+brew "node"
+brew "ripgrep"
+brew "tmux"
+brew "wget"
+brew "zsh"
+
+cask "1password"
+cask "arc"
+cask "cursor"
+cask "docker"
+cask "font-jetbrains-mono"
+cask "iterm2"
+cask "raycast"
+cask "visual-studio-code"</textarea>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <div class="section-title" style="margin-bottom:8px;">操作</div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="fakeBrewBundle()">↻ &nbsp;brew bundle install</button>
+                <button class="btn btn-secondary" style="width:100%; justify-content:center;" onclick="showToast('✓', 'Brewfile 已保存到 ~/Brewfile')">保存到文件</button>
+                <button class="btn btn-secondary" style="width:100%; justify-content:center;" onclick="showToast('✓', '已复制到剪贴板')">复制到剪贴板</button>
+              </div>
+            </div>
+            <div class="detail-card" style="flex:1;">
+              <div class="detail-card-title">安装差异预览</div>
+              <div style="font-size:12.5px; font-family:var(--font-mono); line-height:1.7;">
+                <div style="color:oklch(55% 0.14 145);">+ cursor (未安装)</div>
+                <div style="color:oklch(55% 0.14 145);">+ font-jetbrains-mono (未安装)</div>
+                <div style="color:oklch(55% 0.14 145);">+ raycast (未安装)</div>
+                <div style="color:var(--muted); margin-top:8px; font-family:var(--font-body); font-size:12px;">其余 25 个包已安装 ✓</div>
+              </div>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">统计</div>
+              <div class="meta-row"><span class="meta-label">Taps</span><span class="meta-value">4</span></div>
+              <div class="meta-row"><span class="meta-label">Brews</span><span class="meta-value">13</span></div>
+              <div class="meta-row"><span class="meta-label">Casks</span><span class="meta-value">8</span></div>
+              <div class="meta-row"><span class="meta-label">待安装</span><span class="meta-value" style="color:var(--accent);">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toaster" id="toaster"></div>
+
+<script>
+const PACKAGES = [
+  {name:'bat',      desc:'Cat clone with syntax highlighting',          ver:'0.24.0', latest:'0.24.0', installed:true},
+  {name:'curl',     desc:'Transfer data with URLs',                     ver:'8.9.1',  latest:'8.11.0', installed:true},
+  {name:'fd',       desc:'Simple, fast alternative to find',            ver:'10.2.0', latest:'10.2.0', installed:true},
+  {name:'fzf',      desc:'Command-line fuzzy finder',                   ver:'0.56.3', latest:'0.56.3', installed:true},
+  {name:'git',      desc:'Distributed revision control system',         ver:'2.46.2', latest:'2.48.1', installed:true},
+  {name:'gh',       desc:'GitHub command-line tool',                    ver:'2.58.0', latest:'2.62.0', installed:true},
+  {name:'httpie',   desc:'Modern HTTP client for the CLI',              ver:'',       latest:'3.2.4',  installed:false},
+  {name:'jq',       desc:'Lightweight command-line JSON processor',     ver:'1.7.1',  latest:'1.7.1',  installed:true},
+  {name:'node',     desc:'Platform built on V8 to build network apps',  ver:'22.9.0', latest:'23.4.0', installed:true},
+  {name:'python@3.13',desc:'Interpreted, interactive OO language',      ver:'3.13.0', latest:'3.13.0', installed:true},
+  {name:'ripgrep',  desc:'Search tool like grep and The Silver Searcher',ver:'14.1.1',latest:'14.1.1', installed:true},
+  {name:'tmux',     desc:'Terminal multiplexer',                        ver:'3.5a',   latest:'3.5a',   installed:true},
+  {name:'wget',     desc:'Internet file retriever',                     ver:'1.24.5', latest:'1.24.5', installed:true},
+  {name:'zsh',      desc:'UNIX shell (command interpreter)',            ver:'5.9',    latest:'5.9',    installed:true},
+];
+const SERVICES = [
+  {name:'postgresql@16', status:'running', user:'sunmking', pid:'8421', autostart:true},
+  {name:'redis',         status:'running', user:'sunmking', pid:'8435', autostart:true},
+  {name:'nginx',         status:'stopped', user:'-',        pid:'-',    autostart:false},
+  {name:'mysql',         status:'error',   user:'-',        pid:'-',    autostart:false},
+  {name:'dnsmasq',       status:'stopped', user:'-',        pid:'-',    autostart:false},
+];
+const TAPS = [
+  {name:'homebrew/core',       url:'https://github.com/Homebrew/homebrew-core',       pkgs:6918, official:true},
+  {name:'homebrew/cask',       url:'https://github.com/Homebrew/homebrew-cask',       pkgs:4102, official:true},
+  {name:'homebrew/bundle',     url:'https://github.com/Homebrew/homebrew-bundle',     pkgs:1,    official:true},
+  {name:'homebrew/cask-fonts', url:'https://github.com/Homebrew/homebrew-cask-fonts', pkgs:1734, official:true},
+  {name:'oven-sh/bun',         url:'https://github.com/oven-sh/homebrew-bun',         pkgs:1,    official:false},
+];
+const UPDATES = [
+  {name:'curl',  from:'8.9.1',  to:'8.11.0'},
+  {name:'gh',    from:'2.58.0', to:'2.62.0'},
+  {name:'node',  from:'22.9.0', to:'23.4.0'},
+];
+const CLEANUP = [
+  {name:'curl',        version:'8.7.1',    size:'3.2 MB'},
+  {name:'curl',        version:'8.9.0',    size:'3.2 MB'},
+  {name:'node',        version:'22.6.0',   size:'79 MB'},
+  {name:'python@3.13', version:'3.13.0_1', size:'18 MB'},
+];
+
+let selectedUpdates = new Set(['curl','gh','node']);
+let selectedCleanup = new Set(['curl@8.7.1','curl@8.9.0','node@22.6.0','python@3.13@3.13.0_1']);
+let serviceAutostart = {'postgresql@16':true,'redis':true};
+let currentUpdateTab = 'upgrades';
+
+// Router
+function navigate(btn) {
+  const screen = btn.dataset.screen;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  if (screen === 'update')   renderUpdateTab(currentUpdateTab);
+  if (screen === 'taps')     renderTaps();
+  if (screen === 'services') renderServices();
+  localStorage.setItem('gobrew-screen', screen);
+}
+
+// Theme
+const htmlEl = document.documentElement;
+document.getElementById('btn-theme').onclick = () => {
+  const next = htmlEl.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  htmlEl.setAttribute('data-theme', next);
+  localStorage.setItem('gobrew-theme', next);
+};
+const st = localStorage.getItem('gobrew-theme');
+if (st) htmlEl.setAttribute('data-theme', st);
+
+// Packages
+function pkgStatus(p) {
+  if (!p.installed) return '<span class="pill pill-notinst">未安装</span>';
+  if (p.ver !== p.latest) return '<span class="pill pill-update">可更新</span>';
+  return '<span class="pill pill-installed">已安装</span>';
+}
+function filterPackages(q) {
+  document.querySelectorAll('#pkg-tbody tr').forEach(r => {
+    r.style.display = (r.dataset.name.includes(q) || r.dataset.desc.includes(q)) ? '' : 'none';
+  });
+}
+function setPkgFilter(f, btn) {
+  document.querySelectorAll('.toolbar .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#pkg-tbody tr').forEach(r => {
+    if (f === 'all') r.style.display = '';
+    else if (f === 'installed') r.style.display = r.dataset.installed === 'true' ? '' : 'none';
+    else r.style.display = r.dataset.hasupdate === 'true' ? '' : 'none';
+  });
+}
+function openDetail(name) {
+  const p = PACKAGES.find(x => x.name === name);
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('detail-desc').textContent = p.desc;
+  document.getElementById('detail-ver').textContent = p.ver || '—';
+  const pill = document.getElementById('detail-status-pill');
+  if (!p.installed)           { pill.className='pill pill-notinst'; pill.textContent='未安装'; }
+  else if (p.ver !== p.latest){ pill.className='pill pill-update';  pill.textContent='可更新'; }
+  else                        { pill.className='pill pill-installed'; pill.textContent='已安装'; }
+  const btn = document.getElementById('detail-action-btn');
+  if (!p.installed)            { btn.textContent='安装'; btn.className='btn btn-primary'; }
+  else if (p.ver !== p.latest) { btn.textContent='更新至 '+p.latest; btn.className='btn btn-primary'; }
+  else                         { btn.textContent='卸载'; btn.className='btn btn-danger'; }
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.getElementById('screen-detail').classList.add('active');
+}
+function renderPackages() {
+  document.getElementById('pkg-tbody').innerHTML = PACKAGES.map(p => {
+    const u = p.installed && p.ver !== p.latest;
+    return `<tr data-name="${p.name}" data-desc="${p.desc.toLowerCase()}" data-installed="${p.installed}" data-hasupdate="${u}">
+      <td><input class="cb" type="checkbox" ${p.installed?'checked':''}></td>
+      <td><span class="pkg-name">${p.name}</span></td>
+      <td><span class="pkg-desc">${p.desc}</span></td>
+      <td><span class="pkg-version">${p.ver||'—'}</span></td>
+      <td><span class="pkg-version ${u?'update-avail':''}">${p.latest}</span></td>
+      <td>${pkgStatus(p)}</td>
+      <td><button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="openDetail('${p.name}')">详情</button></td>
+    </tr>`;
+  }).join('');
+}
+renderPackages();
+
+// Install animation
+function fakeInstall() {
+  const term = document.getElementById('detail-terminal');
+  const btn  = document.getElementById('detail-action-btn');
+  btn.disabled = true; btn.textContent = '安装中…';
+  term.innerHTML = '<div><span class="t-prompt">$</span> <span class="t-cmd">brew install wget</span></div>';
+  [
+    ['t-out','==> Downloading https://ghcr.io/v2/homebrew/core/wget/manifests/1.24.5'],
+    ['t-out','==> Fetching dependencies for wget'],
+    ['t-out','==> Fetching wget'],
+    ['t-ok', '==> Pouring wget--1.24.5.arm64_sequoia.bottle.tar.gz'],
+    ['t-ok', '🍺  /opt/homebrew/Cellar/wget/1.24.5: 89 files, 4.2MB'],
+  ].forEach((l,i) => setTimeout(() => {
+    term.innerHTML += `<div class="${l[0]}">${l[1]}</div>`;
+    term.scrollTop = term.scrollHeight;
+    if (i === 4) { btn.disabled=false; btn.textContent='卸载'; btn.className='btn btn-danger'; showToast('🍺','wget 安装完成'); }
+  }, (i+1)*600));
+}
+
+// Update tab
+function setUpdateTab(tab, btn) {
+  currentUpdateTab = tab;
+  document.querySelectorAll('#screen-update .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderUpdateTab(tab);
+}
+function renderUpdateTab(tab) {
+  const el = document.getElementById('update-tab-content');
+  if (tab === 'upgrades') {
+    el.innerHTML = `
+      <div style="display:flex;gap:8px;padding:16px 0 12px;align-items:center;">
+        <button class="btn btn-primary" onclick="fakeUpdateAll()">更新选中 (${selectedUpdates.size})</button>
+        <button class="btn btn-secondary" onclick="selectAllUpdates()">全选</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted);">已选 ${selectedUpdates.size} / ${UPDATES.length}</span>
+      </div>
+      <table class="pkg-table"><thead><tr>
+        <th style="width:28px;"></th><th>包名</th><th>当前版本</th><th style="width:30px;"></th><th>新版本</th><th style="width:80px;"></th>
+      </tr></thead><tbody>
+      ${UPDATES.map(u=>`<tr>
+        <td><input class="cb" type="checkbox" ${selectedUpdates.has(u.name)?'checked':''} onchange="toggleUpdate('${u.name}',this.checked)"></td>
+        <td><span class="pkg-name">${u.name}</span></td>
+        <td><span class="pkg-version">${u.from}</span></td>
+        <td style="color:var(--muted);text-align:center;">→</td>
+        <td><span class="pkg-version update-avail">${u.to}</span></td>
+        <td><button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↻','正在更新 ${u.name}…')">更新</button></td>
+      </tr>`).join('')}
+      </tbody></table>`;
+  } else if (tab === 'cleanup') {
+    el.innerHTML = `
+      <div style="display:flex;gap:8px;padding:16px 0 12px;align-items:center;">
+        <button class="btn btn-danger" onclick="fakeCleanup()">清理选中 (${selectedCleanup.size})</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted);">可释放约 <strong>103.4 MB</strong></span>
+      </div>
+      <table class="pkg-table"><thead><tr>
+        <th style="width:28px;"></th><th>包名</th><th>版本</th><th>大小</th>
+      </tr></thead><tbody>
+      ${CLEANUP.map(c=>{
+        const key=`${c.name}@${c.version}`;
+        return `<tr>
+          <td><input class="cb" type="checkbox" ${selectedCleanup.has(key)?'checked':''} onchange="toggleCleanup('${key}',this.checked)"></td>
+          <td><span class="pkg-name">${c.name}</span></td>
+          <td><span class="pkg-version">${c.version}</span></td>
+          <td><span class="pkg-version">${c.size}</span></td>
+        </tr>`;
+      }).join('')}
+      </tbody></table>`;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;gap:8px;padding:16px 0 12px;align-items:center;">
+        <button class="btn btn-danger" onclick="showToast('🗑','正在清空下载缓存…')">清空下载缓存</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--muted);">~/Library/Caches/Homebrew — 1.2 GB</span>
+      </div>
+      <div class="detail-card" style="max-width:380px;">
+        <div class="detail-card-title">缓存目录</div>
+        <div class="meta-row"><span class="meta-label">下载缓存</span><span class="meta-value">1.2 GB</span></div>
+        <div class="meta-row"><span class="meta-label">本地 Tap 源</span><span class="meta-value">38 MB</span></div>
+        <div class="meta-row"><span class="meta-label">日志文件</span><span class="meta-value">2.1 MB</span></div>
+      </div>`;
+  }
+}
+function selectAllUpdates() { UPDATES.forEach(u=>selectedUpdates.add(u.name)); renderUpdateTab('upgrades'); }
+function toggleUpdate(name, checked) { if(checked) selectedUpdates.add(name); else selectedUpdates.delete(name); renderUpdateTab('upgrades'); }
+function toggleCleanup(key, checked) { if(checked) selectedCleanup.add(key); else selectedCleanup.delete(key); renderUpdateTab('cleanup'); }
+function fakeUpdateAll() { showToast('↻',`正在更新 ${selectedUpdates.size} 个包…`); setTimeout(()=>showToast('✓','更新完成'),2200); }
+function fakeCleanup()   { showToast('🗑',`正在清理 ${selectedCleanup.size} 个旧版本…`); setTimeout(()=>showToast('✓','清理完成，已释放 103.4 MB'),1500); }
+
+// Taps
+function renderTaps() {
+  document.getElementById('taps-list').innerHTML = '<div style="padding-top:16px;">' + TAPS.map(t=>`
+    <div class="tap-card">
+      <div class="tap-icon">${t.official?'⬡':'◈'}</div>
+      <div class="tap-info">
+        <div class="tap-name">${t.name}</div>
+        <div class="tap-url">${t.url}</div>
+        <div class="tap-pkg-count">${t.pkgs.toLocaleString()} 个包</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn btn-ghost" onclick="showToast('↻','正在更新 ${t.name}…')">更新</button>
+        ${t.official?'':`<button class="btn btn-danger" onclick="showToast('🗑','已移除 ${t.name}')">移除</button>`}
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+// Services
+function renderServices() {
+  document.getElementById('services-tbody').innerHTML = SERVICES.map(s=>{
+    const pc = s.status==='running'?'pill-running':s.status==='error'?'pill-error':'pill-stopped';
+    const pl = s.status==='running'?'运行中':s.status==='error'?'错误':'已停止';
+    const ac = serviceAutostart[s.name]?'checked':'';
+    return `<tr>
+      <td><span class="pkg-name">${s.name}</span></td>
+      <td><span class="pill ${pc}">${pl}</span></td>
+      <td><span class="pkg-version">${s.user}</span></td>
+      <td><span class="pkg-version">${s.pid}</span></td>
+      <td><input class="cb" type="checkbox" ${ac} onchange="toggleAutostart('${s.name}',this.checked)" title="开机自启动"></td>
+      <td style="display:flex;gap:4px;padding:6px 12px;">
+        ${s.status==='running'
+          ?`<button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('⏸','正在停止 ${s.name}…')">停止</button>
+            <button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↺','正在重启 ${s.name}…')">重启</button>`
+          :`<button class="btn btn-primary" style="height:26px;font-size:12px;" onclick="showToast('▶','正在启动 ${s.name}…')">启动</button>`
+        }
+      </td>
+    </tr>`;
+  }).join('');
+}
+function toggleAutostart(name, val) { serviceAutostart[name]=val; showToast(val?'✓':'✗',`${name} 开机自启已${val?'启用':'禁用'}`); }
+
+// Brewfile
+function fakeBrewBundle() { showToast('↻','正在执行 brew bundle install…'); setTimeout(()=>showToast('✓','3 个包安装完成'),3000); }
+
+// Toast
+function showToast(icon, msg) {
+  const el = document.getElementById('toaster');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  el.appendChild(t);
+  setTimeout(()=>{ t.style.cssText='opacity:0;transition:opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 2500);
+}
+
+// Init
+const ss = localStorage.getItem('gobrew-screen');
+if (ss) { const b=document.querySelector(`.nav-item[data-screen="${ss}"]`); if(b) navigate(b); }
+renderUpdateTab('upgrades');
+renderTaps();
+renderServices();
+</script>
+</body>
+</html>
