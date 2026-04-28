@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { RefreshCw } from 'lucide-vue-next'
 import * as BrewService from '../../bindings/changeme/services/brewservice.js'
@@ -21,6 +21,9 @@ const logStore = useLogStore()
 const filter = ref('all')
 const query = ref('')
 const pendingKey = ref('')
+const pageSize = 50
+const visibleLimit = ref(pageSize)
+const scrollRoot = ref<HTMLElement | null>(null)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const filterOptions = [
@@ -148,11 +151,41 @@ const rows = computed(() => {
     .sort((a, b) => Number(b.updateAvailable) - Number(a.updateAvailable) || a.name.localeCompare(b.name))
 })
 
+const displayRows = computed(() => rows.value.slice(0, visibleLimit.value))
+const hasMoreRows = computed(() => visibleLimit.value < rows.value.length)
+
 watch(query, value => {
   if (searchTimer) clearTimeout(searchTimer)
   if (value.trim()) filter.value = 'all'
   searchTimer = setTimeout(() => searchStore.search(value), 260)
 })
+
+watch([rows, filter, query], () => {
+  visibleLimit.value = pageSize
+  nextTick(loadMoreIfNeeded)
+})
+
+function loadMoreRows() {
+  if (!hasMoreRows.value) return
+  visibleLimit.value = Math.min(visibleLimit.value + pageSize, rows.value.length)
+  nextTick(loadMoreIfNeeded)
+}
+
+function loadMoreIfNeeded() {
+  const el = scrollRoot.value
+  if (!el || !hasMoreRows.value) return
+  if (el.scrollHeight <= el.clientHeight + 160) {
+    loadMoreRows()
+  }
+}
+
+function onScroll() {
+  const el = scrollRoot.value
+  if (!el || !hasMoreRows.value) return
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - 180) {
+    loadMoreRows()
+  }
+}
 
 async function refresh() {
   await Promise.all([installedStore.forceRefresh(), updateStore.forceRefresh()])
@@ -183,7 +216,14 @@ async function runAction(action: 'install' | 'upgrade' | 'uninstall' | 'pin' | '
   }
 }
 
-onMounted(refresh)
+onMounted(async () => {
+  await refresh()
+  nextTick(loadMoreIfNeeded)
+})
+
+onUnmounted(() => {
+  if (searchTimer) clearTimeout(searchTimer)
+})
 </script>
 
 <template>
@@ -198,10 +238,10 @@ onMounted(refresh)
     <div v-if="installedStore.error || updateStore.error || searchStore.error" class="content-body">
       <p class="error-text">{{ installedStore.error || updateStore.error || searchStore.error }}</p>
     </div>
-    <div v-else class="content-body" style="padding-top:0;">
+    <div v-else ref="scrollRoot" class="content-body" style="padding-top:0;" @scroll="onScroll">
       <div v-if="searchStore.loading" class="content-subtitle" style="padding:10px 12px;">正在搜索 Homebrew...</div>
       <PackageTable
-        :rows="rows"
+        :rows="displayRows"
         :pending-key="pendingKey"
         @select="select"
         @install="runAction('install', $event)"
@@ -211,6 +251,8 @@ onMounted(refresh)
         @unpin="runAction('unpin', $event)"
       />
       <div v-if="rows.length === 0 && !searchStore.loading" class="empty-state">{{ query.trim() ? '没有匹配的包，可换个关键词试试' : '没有可显示的包' }}</div>
+      <div v-else-if="hasMoreRows" class="empty-state" style="padding:14px;">继续滚动加载更多（{{ displayRows.length }}/{{ rows.length }}）</div>
+      <div v-else-if="rows.length > pageSize" class="empty-state" style="padding:14px;">已显示全部 {{ rows.length }} 项</div>
     </div>
   </section>
 </template>
