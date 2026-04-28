@@ -61,6 +61,10 @@ export function Install(name: string): $CancellablePromise<void> {
     return $Call.ByID(1909335040, name);
 }
 
+export function InstallPackage(name: string, packageType: string): $CancellablePromise<void> {
+    return $Call.ByID(394624528, name, packageType);
+}
+
 export function ListInstalled(): $CancellablePromise<$models.InstalledListResult | null> {
     return $Call.ByID(3134767653).then(($result: any) => {
         return $$createType9($result);

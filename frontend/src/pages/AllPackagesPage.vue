@@ -20,6 +20,7 @@ const searchStore = useSearchStore()
 const logStore = useLogStore()
 const filter = ref('all')
 const query = ref('')
+const pendingKey = ref('')
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const filterOptions = [
@@ -139,6 +140,7 @@ const rows = computed(() => {
 
 watch(query, value => {
   if (searchTimer) clearTimeout(searchTimer)
+  if (value.trim()) filter.value = 'all'
   searchTimer = setTimeout(() => searchStore.search(value), 260)
 })
 
@@ -152,9 +154,11 @@ function select(row: PackageRow) {
 }
 
 async function runAction(action: 'install' | 'upgrade' | 'uninstall' | 'pin' | 'unpin', row: PackageRow) {
+  if (pendingKey.value) return
+  pendingKey.value = row.key
   logStore.startListening(`${action} ${row.name}`)
   try {
-    if (action === 'install') await BrewService.Install(row.name)
+    if (action === 'install') await BrewService.InstallPackage(row.name, row.type)
     if (action === 'upgrade') await BrewService.Upgrade(row.name)
     if (action === 'pin') await BrewService.Pin(row.name)
     if (action === 'unpin') await BrewService.Unpin(row.name)
@@ -164,6 +168,7 @@ async function runAction(action: 'install' | 'upgrade' | 'uninstall' | 'pin' | '
     }
     await refresh()
   } finally {
+    pendingKey.value = ''
     logStore.stopListening()
   }
 }
@@ -184,8 +189,10 @@ onMounted(refresh)
       <p class="error-text">{{ installedStore.error || updateStore.error || searchStore.error }}</p>
     </div>
     <div v-else class="content-body" style="padding-top:0;">
+      <div v-if="searchStore.loading" class="content-subtitle" style="padding:10px 12px;">正在搜索 Homebrew...</div>
       <PackageTable
         :rows="rows"
+        :pending-key="pendingKey"
         @select="select"
         @install="runAction('install', $event)"
         @upgrade="runAction('upgrade', $event)"
@@ -193,7 +200,7 @@ onMounted(refresh)
         @pin="runAction('pin', $event)"
         @unpin="runAction('unpin', $event)"
       />
-      <div v-if="rows.length === 0" class="empty-state">没有匹配的包</div>
+      <div v-if="rows.length === 0 && !searchStore.loading" class="empty-state">{{ query.trim() ? '没有匹配的包，可换个关键词试试' : '没有可显示的包' }}</div>
     </div>
   </section>
 </template>

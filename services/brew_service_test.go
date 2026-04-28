@@ -52,6 +52,28 @@ func TestPinCommandArgs(t *testing.T) {
 	}
 }
 
+func TestInstallCommandArgs(t *testing.T) {
+	formulaArgs, err := installCommandArgs("wget", "formula")
+	if err != nil {
+		t.Fatalf("installCommandArgs returned error: %v", err)
+	}
+	if len(formulaArgs) != 2 || formulaArgs[0] != "install" || formulaArgs[1] != "wget" {
+		t.Fatalf("unexpected formula install args: %#v", formulaArgs)
+	}
+
+	caskArgs, err := installCommandArgs("visual-studio-code", "cask")
+	if err != nil {
+		t.Fatalf("installCommandArgs returned error: %v", err)
+	}
+	if len(caskArgs) != 3 || caskArgs[0] != "install" || caskArgs[1] != "--cask" || caskArgs[2] != "visual-studio-code" {
+		t.Fatalf("unexpected cask install args: %#v", caskArgs)
+	}
+
+	if _, err := installCommandArgs("node", "unknown"); err == nil {
+		t.Fatalf("expected unsupported package type to fail")
+	}
+}
+
 func TestParsePackageInfoJSONIncludesCask(t *testing.T) {
 	raw := `{"formulae":[],"casks":[{"name":"visual-studio-code","full_name":"visual-studio-code","tap":"homebrew/cask","desc":"Open-source code editor","homepage":"https://code.visualstudio.com/","version":"1.99.0","installed":"1.98.2","auto_updates":true,"token":"visual-studio-code"}]}`
 	info, err := parsePackageInfoJSON(raw, "visual-studio-code", "cask")

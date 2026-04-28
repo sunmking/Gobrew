@@ -227,8 +227,20 @@ func (b *BrewService) PackageInfo(ctx context.Context, name, packageType string)
 }
 
 func (b *BrewService) Install(ctx context.Context, name string) error {
+	return b.installPackage(ctx, name, "formula")
+}
+
+func (b *BrewService) InstallPackage(ctx context.Context, name, packageType string) error {
+	return b.installPackage(ctx, name, packageType)
+}
+
+func (b *BrewService) installPackage(ctx context.Context, name, packageType string) error {
+	args, argErr := installCommandArgs(name, packageType)
+	if argErr != nil {
+		return argErr
+	}
 	start := time.Now()
-	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, "install", name)
+	_, stderr, err := runBrewCommandWithEvents(ctx, b.app, args...)
 	b.emitComplete(err == nil, stderr, start)
 	if err != nil {
 		return &BrewError{Code: "INSTALL_FAILED", Message: "Failed to install " + name, Details: stderr}
@@ -846,6 +858,21 @@ func pinCommandArgs(name string, pin bool) ([]string, error) {
 		return []string{"pin", pkgName}, nil
 	}
 	return []string{"unpin", pkgName}, nil
+}
+
+func installCommandArgs(name, packageType string) ([]string, error) {
+	pkgName := strings.TrimSpace(name)
+	if pkgName == "" {
+		return nil, &BrewError{Code: "INVALID_ARGUMENT", Message: "Package name is required"}
+	}
+	pkgType := strings.ToLower(strings.TrimSpace(packageType))
+	if pkgType == "" || pkgType == "formula" {
+		return []string{"install", pkgName}, nil
+	}
+	if pkgType == "cask" {
+		return []string{"install", "--cask", pkgName}, nil
+	}
+	return nil, &BrewError{Code: "INVALID_ARGUMENT", Message: "Unsupported package type: " + packageType}
 }
 
 func stringValue(v any) string {

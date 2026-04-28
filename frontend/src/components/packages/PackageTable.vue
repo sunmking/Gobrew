@@ -4,7 +4,10 @@ import BrewButton from '@/components/common/BrewButton.vue'
 import StatusPill from '@/components/common/StatusPill.vue'
 import type { PackageRow } from '@/types/brew'
 
-defineProps<{ rows: PackageRow[] }>()
+defineProps<{
+  rows: PackageRow[]
+  pendingKey?: string
+}>()
 
 const emit = defineEmits<{
   (event: 'select', row: PackageRow): void
@@ -47,12 +50,12 @@ const emit = defineEmits<{
         </td>
         <td @click.stop>
           <div style="display:flex; gap:6px; justify-content:flex-end;">
-            <BrewButton v-if="!row.installed" variant="primary" @click="emit('install', row)"><Download :size="13" />安装</BrewButton>
-            <BrewButton v-else-if="row.updateAvailable && !row.pinned" variant="primary" @click="emit('upgrade', row)"><Upload :size="13" />更新</BrewButton>
-            <BrewButton v-else variant="ghost" @click="emit('uninstall', row)"><Trash2 :size="13" />卸载</BrewButton>
-            <BrewButton v-if="row.installed && row.type === 'formula' && !row.pinned" variant="ghost" @click="emit('pin', row)"><Lock :size="13" /></BrewButton>
-            <BrewButton v-if="row.installed && row.type === 'formula' && row.pinned" variant="ghost" @click="emit('unpin', row)"><Unlock :size="13" /></BrewButton>
-            <BrewButton variant="ghost" @click="emit('select', row)"><MoreHorizontal :size="13" /></BrewButton>
+            <BrewButton v-if="!row.installed" variant="primary" :disabled="pendingKey === row.key" @click="emit('install', row)"><Download :size="13" />{{ pendingKey === row.key ? '安装中' : '安装' }}</BrewButton>
+            <BrewButton v-else-if="row.updateAvailable && !row.pinned" variant="primary" :disabled="pendingKey === row.key" @click="emit('upgrade', row)"><Upload :size="13" />{{ pendingKey === row.key ? '更新中' : '更新' }}</BrewButton>
+            <BrewButton v-else variant="ghost" :disabled="pendingKey === row.key" @click="emit('uninstall', row)"><Trash2 :size="13" />卸载</BrewButton>
+            <BrewButton v-if="row.installed && row.type === 'formula' && !row.pinned" variant="ghost" :disabled="pendingKey === row.key" @click="emit('pin', row)"><Lock :size="13" /></BrewButton>
+            <BrewButton v-if="row.installed && row.type === 'formula' && row.pinned" variant="ghost" :disabled="pendingKey === row.key" @click="emit('unpin', row)"><Unlock :size="13" /></BrewButton>
+            <BrewButton variant="ghost" :disabled="pendingKey === row.key" @click="emit('select', row)"><MoreHorizontal :size="13" /></BrewButton>
           </div>
         </td>
       </tr>
