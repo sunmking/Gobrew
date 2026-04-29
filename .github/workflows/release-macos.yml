@@ -51,6 +51,13 @@ jobs:
       - name: Build app bundle
         run: task package
 
+      - name: Install create-dmg
+        shell: bash
+        run: |
+          set -euo pipefail
+          brew update
+          brew install create-dmg
+
       - name: Package DMG and checksums
         shell: bash
         run: |
@@ -71,7 +78,24 @@ jobs:
           DMG_NAME="${APP_NAME}-${RELEASE_TAG}-macos.dmg"
           ZIP_NAME="${APP_NAME}-${RELEASE_TAG}-macos.zip"
 
-          hdiutil create -volname "${APP_NAME}" -srcfolder "${APP_PATH}" -ov -format UDZO "dist/${DMG_NAME}"
+          rm -rf dist/dmg-root
+          mkdir -p dist/dmg-root
+          cp -R "${APP_PATH}" "dist/dmg-root/"
+          ln -s /Applications "dist/dmg-root/Applications"
+          cp "build/darwin/DMG_INSTALL_README.txt" "dist/dmg-root/INSTALL.txt"
+
+          create-dmg \
+            --volname "${APP_NAME}" \
+            --window-pos 200 120 \
+            --window-size 680 420 \
+            --icon-size 120 \
+            --icon "${APP_NAME}.app" 180 190 \
+            --icon "Applications" 500 190 \
+            --hide-extension "${APP_NAME}.app" \
+            --app-drop-link 500 190 \
+            "dist/${DMG_NAME}" \
+            "dist/dmg-root"
+
           ditto -c -k --keepParent "${APP_PATH}" "dist/${ZIP_NAME}"
 
           shasum -a 256 "dist/${DMG_NAME}" > "dist/${DMG_NAME}.sha256"
