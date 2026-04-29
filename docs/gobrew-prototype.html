@@ -79,6 +79,7 @@ body {
   border-radius: 12px;
   overflow: hidden;
   display: flex; flex-direction: column;
+  position: relative;
   box-shadow: 0 32px 80px oklch(0% 0 0 / 0.5), 0 0 0 0.5px oklch(0% 0 0 / 0.3);
 }
 
@@ -286,9 +287,237 @@ body {
 code { font-family:var(--font-mono); font-size:0.88em; background:var(--border); padding:1px 5px; border-radius:3px; color:var(--fg); }
 
 /* Toaster */
-.toaster { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:1000; pointer-events:none; }
+.toaster { position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:8px; z-index:600; pointer-events:none; }
 .toast { background:var(--fg); color:var(--bg); padding:10px 14px; border-radius:var(--radius); font-size:13px; font-weight:450; animation:slide-in 0.2s ease; max-width:300px; display:flex; align-items:center; gap:8px; }
 @keyframes slide-in { from { transform:translateX(20px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+
+/* Notifications */
+.notif-button { position:relative; }
+.notif-dot {
+  position:absolute; top:4px; right:4px;
+  min-width:14px; height:14px; padding:0 4px;
+  border-radius:999px; background:var(--danger); color:white;
+  font:700 9px/14px var(--font-body);
+  text-align:center;
+  box-shadow:0 0 0 2px var(--surface);
+}
+.notif-dot.hidden { display:none; }
+.notification-panel {
+  position:absolute; top:42px; right:48px; z-index:450;
+  width:360px; max-height:520px;
+  background:var(--surface); color:var(--fg);
+  border:1px solid var(--border); border-radius:12px;
+  box-shadow:0 18px 60px oklch(0% 0 0 / 0.26), 0 0 0 0.5px oklch(0% 0 0 / 0.12);
+  overflow:hidden;
+  opacity:0; transform:translateY(-6px) scale(0.98);
+  pointer-events:none;
+  transition:opacity 0.16s ease, transform 0.16s ease;
+}
+.notification-panel.open { opacity:1; transform:translateY(0) scale(1); pointer-events:all; }
+.notification-panel::before {
+  content:""; position:absolute; top:-6px; right:22px;
+  width:12px; height:12px; background:var(--surface);
+  border-left:1px solid var(--border); border-top:1px solid var(--border);
+  transform:rotate(45deg);
+}
+.notif-head {
+  position:relative;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 14px 10px;
+  border-bottom:1px solid var(--border);
+}
+.notif-title { font-size:14px; font-weight:650; letter-spacing:-0.015em; }
+.notif-actions { display:flex; gap:4px; }
+.notif-filters {
+  display:flex; gap:4px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+.notif-filter {
+  border:0; background:transparent; color:var(--muted);
+  height:26px; padding:0 8px; border-radius:var(--radius-sm);
+  font:500 12px var(--font-body); cursor:pointer; white-space:nowrap;
+}
+.notif-filter:hover { background:var(--border); color:var(--fg); }
+.notif-filter.active { background:var(--accent-bg); color:var(--accent); }
+.notif-list { max-height:360px; overflow:auto; }
+.notif-item {
+  display:grid; grid-template-columns:26px 1fr auto; gap:10px;
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+}
+.notif-item:last-child { border-bottom:0; }
+.notif-item.unread { background:color-mix(in oklch, var(--accent-bg) 38%, transparent); }
+.notif-icon {
+  width:26px; height:26px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--border); color:var(--fg);
+  font-size:12px; font-weight:650;
+}
+.notif-icon.update { background:oklch(93% 0.04 255); color:oklch(38% 0.18 255); }
+.notif-icon.operation { background:oklch(93% 0.04 145); color:oklch(38% 0.14 145); }
+.notif-icon.service { background:oklch(94% 0.04 70); color:oklch(42% 0.13 70); }
+.notif-icon.error { background:oklch(94% 0.04 25); color:oklch(40% 0.18 25); }
+[data-theme="dark"] .notif-icon.update { background:oklch(25% 0.08 255); color:oklch(72% 0.18 255); }
+[data-theme="dark"] .notif-icon.operation { background:oklch(25% 0.08 145); color:oklch(72% 0.14 145); }
+[data-theme="dark"] .notif-icon.service { background:oklch(25% 0.08 70); color:oklch(78% 0.13 70); }
+[data-theme="dark"] .notif-icon.error { background:oklch(25% 0.08 25); color:oklch(72% 0.18 25); }
+.notif-content { min-width:0; }
+.notif-name { font-size:12.8px; font-weight:550; color:var(--fg); }
+.notif-message { margin-top:2px; font-size:11.8px; line-height:1.45; color:var(--muted); }
+.notif-time {
+  font-family:var(--font-mono); font-size:10.5px;
+  color:var(--muted); white-space:nowrap;
+}
+.notif-empty {
+  padding:36px 18px;
+  text-align:center; color:var(--muted);
+  font-size:12.5px;
+}
+
+/* Preferences */
+.prefs-overlay {
+  position:fixed; inset:0; z-index:500;
+  display:flex; align-items:center; justify-content:center;
+  background:oklch(0% 0 0 / 0.42);
+  backdrop-filter:blur(8px);
+  opacity:0; pointer-events:none;
+  transition:opacity 0.18s ease;
+}
+.prefs-overlay.open { opacity:1; pointer-events:all; }
+.prefs-window {
+  width:660px; height:508px;
+  background:var(--bg); color:var(--fg);
+  border:1px solid oklch(0% 0 0 / 0.22);
+  border-radius:12px; overflow:hidden;
+  display:flex; position:relative;
+  box-shadow:0 28px 80px oklch(0% 0 0 / 0.48);
+  transform:scale(0.96) translateY(8px);
+  transition:transform 0.18s ease;
+}
+.prefs-overlay.open .prefs-window { transform:scale(1) translateY(0); }
+.prefs-close {
+  position:absolute; top:10px; right:12px; z-index:2;
+  width:26px; height:26px; border:0; border-radius:50%;
+  background:var(--border); color:var(--muted);
+  cursor:pointer; font-size:14px; line-height:1;
+}
+.prefs-close:hover { background:var(--muted); color:var(--bg); }
+.prefs-sidebar {
+  width:156px; flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:16px 8px;
+}
+.prefs-title {
+  padding:0 8px 12px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:8px;
+  font-size:13px; font-weight:600; letter-spacing:-0.01em;
+}
+.prefs-nav {
+  width:100%; border:0; background:transparent;
+  display:flex; align-items:center; gap:8px;
+  padding:8px; border-radius:var(--radius);
+  color:var(--muted); cursor:pointer;
+  font:450 12.5px var(--font-body);
+  text-align:left;
+}
+.prefs-nav:hover { background:var(--border); color:var(--fg); }
+.prefs-nav.active { background:var(--accent-bg); color:var(--accent); font-weight:500; }
+.prefs-icon { width:18px; text-align:center; font-size:13px; }
+.prefs-content {
+  flex:1; overflow:auto;
+  padding:20px 20px 72px;
+}
+.prefs-page { display:none; }
+.prefs-page.active { display:block; }
+.prefs-section {
+  margin:18px 0 8px;
+  font-size:11px; font-weight:600;
+  letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--muted);
+}
+.prefs-section:first-child { margin-top:0; }
+.prefs-group {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  overflow:hidden;
+}
+.prefs-row {
+  min-height:44px;
+  display:flex; align-items:center; gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+}
+.prefs-row:last-child { border-bottom:0; }
+.prefs-row-main { flex:1; min-width:0; }
+.prefs-label { font-size:13px; color:var(--fg); }
+.prefs-help { margin-top:2px; font-size:11.5px; color:var(--muted); }
+.prefs-input,
+.prefs-select {
+  height:28px; min-width:150px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--surface); color:var(--fg);
+  font:12.5px var(--font-body);
+  padding:0 8px; outline:none;
+}
+.prefs-input { min-width:210px; font-family:var(--font-mono); }
+.prefs-input:focus,
+.prefs-select:focus { border-color:var(--accent); box-shadow:0 0 0 2px oklch(58% 0.18 255 / 0.12); }
+.toggle {
+  position:relative; width:36px; height:22px; flex-shrink:0;
+}
+.toggle input { position:absolute; opacity:0; inset:0; }
+.toggle span {
+  display:block; width:36px; height:22px;
+  border-radius:999px; background:var(--border);
+  cursor:pointer; transition:background 0.16s ease;
+}
+.toggle span::after {
+  content:""; position:absolute; top:3px; left:3px;
+  width:16px; height:16px; border-radius:50%;
+  background:white;
+  box-shadow:0 1px 3px oklch(0% 0 0 / 0.25);
+  transition:transform 0.16s ease;
+}
+.toggle input:checked + span { background:var(--accent); }
+.toggle input:checked + span::after { transform:translateX(14px); }
+.segmented {
+  display:flex; overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+}
+.segmented button {
+  height:28px; padding:0 10px;
+  border:0; border-right:1px solid var(--border);
+  background:transparent; color:var(--muted);
+  cursor:pointer; font:500 12px var(--font-body);
+}
+.segmented button:last-child { border-right:0; }
+.segmented button.active { background:var(--accent); color:white; }
+.accent-swatches { display:flex; gap:8px; }
+.accent-swatch {
+  width:18px; height:18px;
+  border:0; border-radius:50%;
+  cursor:pointer;
+  box-shadow:0 0 0 1px oklch(0% 0 0 / 0.12);
+}
+.accent-swatch.active {
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+.prefs-range { width:104px; accent-color:var(--accent); }
+.prefs-footer {
+  position:absolute; left:156px; right:0; bottom:0;
+  height:52px; padding:10px 20px;
+  display:flex; align-items:center; justify-content:flex-end; gap:8px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width:6px; }
@@ -314,17 +543,36 @@ code { font-family:var(--font-mono); font-size:0.88em; background:var(--border);
           <path d="M10 2a8 8 0 1 0 0 16A8 8 0 0 0 10 2zm0 14V4a6 6 0 0 1 0 12z"/>
         </svg>
       </button>
-      <button class="btn-icon" title="通知">
+      <button class="btn-icon notif-button" id="btn-notifications" title="通知" onclick="toggleNotifications(event)">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10 2a6 6 0 0 0-6 6v3l-1.5 2V14h15v-1l-1.5-2V8a6 6 0 0 0-6-6zm0 16a2 2 0 0 0 2-2H8a2 2 0 0 0 2 2z"/>
         </svg>
+        <span class="notif-dot" id="notif-unread-count">3</span>
       </button>
-      <button class="btn-icon" title="设置" onclick="showToast('⚙', '偏好设置（暂未实现）')">
+      <button class="btn-icon" title="偏好设置" onclick="openPrefs()">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm7.2 2.1-.5-.1a6.9 6.9 0 0 0-.5-1.2l.3-.4a1 1 0 0 0-.1-1.4l-1-1a1 1 0 0 0-1.4-.1l-.4.3a6.9 6.9 0 0 0-1.2-.5l-.1-.5A1 1 0 0 0 11.3 3H8.7a1 1 0 0 0-1 .9l-.1.5a6.9 6.9 0 0 0-1.2.5l-.4-.3a1 1 0 0 0-1.4.1l-1 1a1 1 0 0 0-.1 1.4l.3.4a6.9 6.9 0 0 0-.5 1.2l-.5.1a1 1 0 0 0-.8 1v1.4a1 1 0 0 0 .8 1l.5.1c.1.4.3.8.5 1.2l-.3.4a1 1 0 0 0 .1 1.4l1 1a1 1 0 0 0 1.4.1l.4-.3c.4.2.8.4 1.2.5l.1.5a1 1 0 0 0 1 .8h1.4a1 1 0 0 0 1-.8l.1-.5c.4-.1.8-.3 1.2-.5l.4.3a1 1 0 0 0 1.4-.1l1-1a1 1 0 0 0 .1-1.4l-.3-.4c.2-.4.4-.8.5-1.2l.5-.1a1 1 0 0 0 .8-1V10.1a1 1 0 0 0-.8-1z"/>
         </svg>
       </button>
     </div>
+  </div>
+
+  <div class="notification-panel" id="notification-panel" onclick="event.stopPropagation()">
+    <div class="notif-head">
+      <div class="notif-title">通知</div>
+      <div class="notif-actions">
+        <button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="markAllNotificationsRead()">全部已读</button>
+        <button class="btn-icon" title="清空通知" onclick="clearNotifications()">×</button>
+      </div>
+    </div>
+    <div class="notif-filters">
+      <button class="notif-filter active" data-filter="all" onclick="setNotificationFilter(this)">全部</button>
+      <button class="notif-filter" data-filter="update" onclick="setNotificationFilter(this)">更新</button>
+      <button class="notif-filter" data-filter="operation" onclick="setNotificationFilter(this)">操作</button>
+      <button class="notif-filter" data-filter="service" onclick="setNotificationFilter(this)">服务</button>
+      <button class="notif-filter" data-filter="error" onclick="setNotificationFilter(this)">错误</button>
+    </div>
+    <div class="notif-list" id="notification-list"></div>
   </div>
 
   <!-- App body -->
@@ -581,6 +829,246 @@ cask "visual-studio-code"</textarea>
   </div>
 </div>
 
+<div class="prefs-overlay" id="prefs-overlay" onclick="handlePrefsOverlay(event)">
+  <section class="prefs-window" role="dialog" aria-modal="true" aria-label="偏好设置">
+    <button class="prefs-close" onclick="closePrefs()" title="关闭">×</button>
+    <aside class="prefs-sidebar">
+      <div class="prefs-title">偏好设置</div>
+      <button class="prefs-nav active" data-tab="general" onclick="switchPrefsTab(this)"><span class="prefs-icon">⌘</span>通用</button>
+      <button class="prefs-nav" data-tab="appearance" onclick="switchPrefsTab(this)"><span class="prefs-icon">◐</span>外观</button>
+      <button class="prefs-nav" data-tab="updates" onclick="switchPrefsTab(this)"><span class="prefs-icon">↻</span>更新</button>
+      <button class="prefs-nav" data-tab="notifications" onclick="switchPrefsTab(this)"><span class="prefs-icon">◎</span>通知</button>
+      <button class="prefs-nav" data-tab="advanced" onclick="switchPrefsTab(this)"><span class="prefs-icon">⌥</span>高级</button>
+    </aside>
+
+    <main class="prefs-content">
+      <section class="prefs-page active" id="prefs-general">
+        <div class="prefs-section">启动</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">登录时启动 Gobrew</div></div>
+            <label class="toggle"><input type="checkbox" data-pref="launchAtLogin" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">启动后显示在菜单栏</div></div>
+            <label class="toggle"><input type="checkbox" data-pref="menuBar" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">恢复上次打开的页面</div>
+              <div class="prefs-help">使用当前侧边栏页面作为下一次启动入口</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="restorePage" checked onchange="savePref(this)"><span></span></label>
+          </div>
+        </div>
+
+        <div class="prefs-section">语言与路径</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">界面语言</div></div>
+            <select class="prefs-select" data-pref="language" onchange="savePref(this)">
+              <option value="zh-CN">简体中文</option>
+              <option value="en">English</option>
+              <option value="ja">日本語</option>
+            </select>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">默认 Brewfile 位置</div>
+              <div class="prefs-help">用于导入、导出与自动备份</div>
+            </div>
+            <input class="prefs-input" data-pref="brewfilePath" value="~/Brewfile" onchange="savePref(this)">
+          </div>
+        </div>
+      </section>
+
+      <section class="prefs-page" id="prefs-appearance">
+        <div class="prefs-section">主题</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">颜色方案</div></div>
+            <div class="segmented" id="theme-mode">
+              <button onclick="setThemeMode('light', this)">浅色</button>
+              <button class="active" onclick="setThemeMode('auto', this)">自动</button>
+              <button onclick="setThemeMode('dark', this)">深色</button>
+            </div>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">强调色</div></div>
+            <div class="accent-swatches">
+              <button class="accent-swatch active" style="background:oklch(58% 0.18 255)" onclick="setAccent(255, this)" title="蓝色"></button>
+              <button class="accent-swatch" style="background:oklch(58% 0.16 145)" onclick="setAccent(145, this)" title="绿色"></button>
+              <button class="accent-swatch" style="background:oklch(58% 0.18 35)" onclick="setAccent(35, this)" title="橙色"></button>
+              <button class="accent-swatch" style="background:oklch(58% 0.18 310)" onclick="setAccent(310, this)" title="紫色"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="prefs-section">显示密度</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">界面字号</div>
+              <div class="prefs-help" id="font-size-label">13 px（默认）</div>
+            </div>
+            <input class="prefs-range" type="range" min="12" max="16" value="13" oninput="setFontSize(this.value)">
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">表格行密度</div></div>
+            <select class="prefs-select" data-pref="rowDensity" onchange="savePref(this)">
+              <option value="compact">紧凑</option>
+              <option value="default" selected>默认</option>
+              <option value="comfortable">宽松</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <section class="prefs-page" id="prefs-updates">
+        <div class="prefs-section">自动检查</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">自动检查 Homebrew 更新</div></div>
+            <label class="toggle"><input type="checkbox" data-pref="autoCheckUpdates" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">检查频率</div></div>
+            <select class="prefs-select" data-pref="updateFrequency" onchange="savePref(this)">
+              <option value="startup">每次启动</option>
+              <option value="daily" selected>每天</option>
+              <option value="weekly">每周</option>
+            </select>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">更新前自动备份 Brewfile</div>
+              <div class="prefs-help">方便回滚包环境</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="backupBeforeUpdate" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">更新后自动清理旧版本</div></div>
+            <label class="toggle"><input type="checkbox" data-pref="cleanupAfterUpdate" onchange="savePref(this)"><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="prefs-page" id="prefs-notifications">
+        <div class="prefs-section">通知</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">有可更新的包</div>
+              <div class="prefs-help">展示版本变化、批量更新提醒</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="notifyUpdates" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">安装、更新或卸载完成</div>
+              <div class="prefs-help">包括 Brewfile 执行、清理缓存、tap 更新</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="notifyOperations" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">服务状态变化</div>
+              <div class="prefs-help">启动、停止、重启、自启动切换</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="notifyServices" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">错误与失败</div>
+              <div class="prefs-help">命令失败、权限问题、网络超时</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="notifyErrors" checked onchange="savePref(this)"><span></span></label>
+          </div>
+        </div>
+        <div class="prefs-section">展示</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">桌面 Toast</div></div>
+            <label class="toggle"><input type="checkbox" data-pref="showToasts" checked onchange="savePref(this)"><span></span></label>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">Toast 位置</div></div>
+            <select class="prefs-select" data-pref="toastPosition" onchange="savePref(this)">
+              <option value="br" selected>右下角</option>
+              <option value="tr">右上角</option>
+              <option value="bl">左下角</option>
+              <option value="tl">左上角</option>
+            </select>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">Toast 显示时长</div></div>
+            <select class="prefs-select" data-pref="toastDuration" onchange="savePref(this)">
+              <option value="2000">2 秒</option>
+              <option value="2500" selected>2.5 秒</option>
+              <option value="4000">4 秒</option>
+              <option value="6000">6 秒</option>
+            </select>
+          </div>
+        </div>
+        <div class="prefs-section">通知中心</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">保留通知记录</div>
+              <div class="prefs-help">关闭后仍显示即时 Toast，但不保存历史记录</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="keepNotificationHistory" checked onchange="savePref(this)"><span></span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="prefs-page" id="prefs-advanced">
+        <div class="prefs-section">Homebrew</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">brew 可执行文件</div>
+              <div class="prefs-help">留空则自动检测 Apple Silicon / Intel 路径</div>
+            </div>
+            <input class="prefs-input" data-pref="brewPath" placeholder="/opt/homebrew/bin/brew" onchange="savePref(this)">
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main"><div class="prefs-label">最大并发任务数</div></div>
+            <select class="prefs-select" data-pref="maxConcurrency" onchange="savePref(this)">
+              <option value="1">1</option>
+              <option value="4" selected>4</option>
+              <option value="8">8</option>
+            </select>
+          </div>
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">调试日志</div>
+              <div class="prefs-help">输出到 ~/Library/Logs/Gobrew</div>
+            </div>
+            <label class="toggle"><input type="checkbox" data-pref="debugLog" onchange="savePref(this)"><span></span></label>
+          </div>
+        </div>
+
+        <div class="prefs-section">危险区域</div>
+        <div class="prefs-group">
+          <div class="prefs-row">
+            <div class="prefs-row-main">
+              <div class="prefs-label">重置所有偏好设置</div>
+              <div class="prefs-help">不会影响已安装的包</div>
+            </div>
+            <button class="btn btn-danger" onclick="resetPrefs()">重置</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="prefs-footer">
+      <button class="btn btn-secondary" onclick="closePrefs()">取消</button>
+      <button class="btn btn-primary" onclick="closePrefs(); showToast('✓', '偏好设置已应用')">完成</button>
+    </footer>
+  </section>
+</div>
+
 <div class="toaster" id="toaster"></div>
 
 <script>
@@ -625,11 +1113,19 @@ const CLEANUP = [
   {name:'node',        version:'22.6.0',   size:'79 MB'},
   {name:'python@3.13', version:'3.13.0_1', size:'18 MB'},
 ];
+const DEFAULT_NOTIFICATIONS = [
+  {id:'n-1', type:'update', icon:'↻', title:'3 个包可更新', message:'curl 8.9.1 → 8.11.0，gh 2.58.0 → 2.62.0，node 22.9.0 → 23.4.0', time:'09:14', unread:true},
+  {id:'n-2', type:'service', icon:'◎', title:'redis 正在运行', message:'服务已通过 brew services start redis 启动，PID 8435。', time:'08:42', unread:true},
+  {id:'n-3', type:'operation', icon:'✓', title:'Brewfile 已生成', message:'已从当前环境导出 4 个 taps、13 个 brews、8 个 casks。', time:'昨天', unread:true},
+  {id:'n-4', type:'error', icon:'!', title:'mysql 启动失败', message:'LaunchAgent 返回非零状态。建议查看 ~/Library/Logs/mysql.log。', time:'昨天', unread:false}
+];
 
 let selectedUpdates = new Set(['curl','gh','node']);
 let selectedCleanup = new Set(['curl@8.7.1','curl@8.9.0','node@22.6.0','python@3.13@3.13.0_1']);
 let serviceAutostart = {'postgresql@16':true,'redis':true};
 let currentUpdateTab = 'upgrades';
+let currentNotificationFilter = 'all';
+let notifications = loadNotifications();
 
 // Router
 function navigate(btn) {
@@ -653,6 +1149,226 @@ document.getElementById('btn-theme').onclick = () => {
 };
 const st = localStorage.getItem('gobrew-theme');
 if (st) htmlEl.setAttribute('data-theme', st);
+
+// Preferences
+function getPrefs() {
+  return JSON.parse(localStorage.getItem('gobrew-prefs') || '{}');
+}
+
+function setPrefs(prefs) {
+  localStorage.setItem('gobrew-prefs', JSON.stringify(prefs));
+}
+
+function prefValue(key, fallback) {
+  const prefs = getPrefs();
+  return key in prefs ? prefs[key] : fallback;
+}
+
+function loadNotifications() {
+  try {
+    return JSON.parse(localStorage.getItem('gobrew-notifications') || 'null') || DEFAULT_NOTIFICATIONS.slice();
+  } catch {
+    return DEFAULT_NOTIFICATIONS.slice();
+  }
+}
+
+function saveNotifications() {
+  localStorage.setItem('gobrew-notifications', JSON.stringify(notifications));
+}
+
+function notificationAllowed(type) {
+  if (type === 'update') return prefValue('notifyUpdates', true);
+  if (type === 'service') return prefValue('notifyServices', true);
+  if (type === 'error') return prefValue('notifyErrors', true);
+  return prefValue('notifyOperations', true);
+}
+
+function addNotification(type, icon, title, message, options = {}) {
+  if (!notificationAllowed(type)) return;
+  const keepHistory = prefValue('keepNotificationHistory', true);
+  if (keepHistory) {
+    notifications.unshift({
+      id: 'n-' + Date.now(),
+      type,
+      icon,
+      title,
+      message,
+      time: '刚刚',
+      unread: options.unread !== false
+    });
+    notifications = notifications.slice(0, 24);
+    saveNotifications();
+    renderNotifications();
+  }
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notification-list');
+  if (!list) return;
+  const items = currentNotificationFilter === 'all'
+    ? notifications
+    : notifications.filter(item => item.type === currentNotificationFilter);
+  const unread = notifications.filter(item => item.unread).length;
+  const badge = document.getElementById('notif-unread-count');
+  if (badge) {
+    badge.textContent = String(unread);
+    badge.classList.toggle('hidden', unread === 0);
+  }
+  if (!items.length) {
+    list.innerHTML = '<div class="notif-empty">没有符合条件的通知</div>';
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="notif-item ${item.unread ? 'unread' : ''}" onclick="markNotificationRead('${item.id}')">
+      <div class="notif-icon ${item.type}">${item.icon}</div>
+      <div class="notif-content">
+        <div class="notif-name">${item.title}</div>
+        <div class="notif-message">${item.message}</div>
+      </div>
+      <div class="notif-time">${item.time}</div>
+    </div>
+  `).join('');
+}
+
+function toggleNotifications(event) {
+  event.stopPropagation();
+  const panel = document.getElementById('notification-panel');
+  panel.classList.toggle('open');
+  renderNotifications();
+}
+
+function closeNotifications() {
+  document.getElementById('notification-panel')?.classList.remove('open');
+}
+
+function setNotificationFilter(btn) {
+  currentNotificationFilter = btn.dataset.filter;
+  document.querySelectorAll('.notif-filter').forEach(item => item.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotifications();
+}
+
+function markNotificationRead(id) {
+  notifications = notifications.map(item => item.id === id ? {...item, unread:false} : item);
+  saveNotifications();
+  renderNotifications();
+}
+
+function markAllNotificationsRead() {
+  notifications = notifications.map(item => ({...item, unread:false}));
+  saveNotifications();
+  renderNotifications();
+}
+
+function clearNotifications() {
+  notifications = [];
+  saveNotifications();
+  renderNotifications();
+}
+
+function openPrefs() {
+  document.getElementById('prefs-overlay').classList.add('open');
+}
+
+function closePrefs() {
+  document.getElementById('prefs-overlay').classList.remove('open');
+}
+
+function handlePrefsOverlay(event) {
+  if (event.target.id === 'prefs-overlay') closePrefs();
+}
+
+function switchPrefsTab(btn) {
+  document.querySelectorAll('.prefs-nav').forEach(item => item.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.prefs-page').forEach(page => page.classList.remove('active'));
+  document.getElementById('prefs-' + btn.dataset.tab).classList.add('active');
+}
+
+function savePref(control) {
+  const prefs = getPrefs();
+  const value = control.type === 'checkbox' ? control.checked : control.value;
+  prefs[control.dataset.pref] = value;
+  setPrefs(prefs);
+  if (control.dataset.pref === 'toastPosition') applyToastPosition(value);
+  renderNotifications();
+  showToast('✓', '偏好已保存', 'operation', {history:false, force:true});
+}
+
+function setThemeMode(mode, btn) {
+  document.querySelectorAll('#theme-mode button').forEach(item => item.classList.remove('active'));
+  btn.classList.add('active');
+  if (mode === 'auto') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    htmlEl.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+  } else {
+    htmlEl.setAttribute('data-theme', mode);
+  }
+  localStorage.setItem('gobrew-theme', htmlEl.getAttribute('data-theme'));
+  const prefs = getPrefs();
+  prefs.themeMode = mode;
+  setPrefs(prefs);
+  showToast('◐', '主题偏好已更新', 'operation', {history:false, force:true});
+}
+
+function setAccent(hue, btn) {
+  document.querySelectorAll('.accent-swatch').forEach(item => item.classList.remove('active'));
+  btn.classList.add('active');
+  document.documentElement.style.setProperty('--accent', `oklch(58% 0.18 ${hue})`);
+  document.documentElement.style.setProperty('--accent-bg', `oklch(95% 0.03 ${hue})`);
+  const prefs = getPrefs();
+  prefs.accentHue = hue;
+  setPrefs(prefs);
+  showToast('●', '强调色已更新', 'operation', {history:false, force:true});
+}
+
+function setFontSize(value) {
+  document.getElementById('font-size-label').textContent = `${value} px${Number(value) === 13 ? '（默认）' : ''}`;
+  document.documentElement.style.setProperty('--ui-font-size', value + 'px');
+  document.querySelectorAll('.pkg-table, .nav-item, .btn, .search-input').forEach(item => {
+    item.style.fontSize = value + 'px';
+  });
+  const prefs = getPrefs();
+  prefs.fontSize = value;
+  setPrefs(prefs);
+}
+
+function resetPrefs() {
+  localStorage.removeItem('gobrew-prefs');
+  localStorage.removeItem('gobrew-theme');
+  htmlEl.setAttribute('data-theme', 'light');
+  document.documentElement.style.removeProperty('--accent');
+  document.documentElement.style.removeProperty('--accent-bg');
+  document.querySelectorAll('.accent-swatch').forEach((item, index) => item.classList.toggle('active', index === 0));
+  renderNotifications();
+  showToast('✓', '偏好设置已重置', 'operation', {history:false, force:true});
+}
+
+function hydratePrefs() {
+  const prefs = getPrefs();
+  document.querySelectorAll('[data-pref]').forEach(control => {
+    const key = control.dataset.pref;
+    if (!(key in prefs)) return;
+    if (control.type === 'checkbox') control.checked = Boolean(prefs[key]);
+    else control.value = prefs[key];
+  });
+  if (prefs.accentHue) {
+    const swatch = Array.from(document.querySelectorAll('.accent-swatch'))
+      .find(item => item.getAttribute('onclick').includes(String(prefs.accentHue)));
+    if (swatch) setAccent(prefs.accentHue, swatch);
+  }
+  if (prefs.fontSize) setFontSize(prefs.fontSize);
+  applyToastPosition(prefs.toastPosition || 'br');
+  renderNotifications();
+}
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    closePrefs();
+    closeNotifications();
+  }
+});
+document.addEventListener('click', closeNotifications);
 
 // Packages
 function pkgStatus(p) {
@@ -751,7 +1467,7 @@ function renderUpdateTab(tab) {
         <td><span class="pkg-version">${u.from}</span></td>
         <td style="color:var(--muted);text-align:center;">→</td>
         <td><span class="pkg-version update-avail">${u.to}</span></td>
-        <td><button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↻','正在更新 ${u.name}…')">更新</button></td>
+        <td><button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↻','正在更新 ${u.name}…','update')">更新</button></td>
       </tr>`).join('')}
       </tbody></table>`;
   } else if (tab === 'cleanup') {
@@ -790,8 +1506,8 @@ function renderUpdateTab(tab) {
 function selectAllUpdates() { UPDATES.forEach(u=>selectedUpdates.add(u.name)); renderUpdateTab('upgrades'); }
 function toggleUpdate(name, checked) { if(checked) selectedUpdates.add(name); else selectedUpdates.delete(name); renderUpdateTab('upgrades'); }
 function toggleCleanup(key, checked) { if(checked) selectedCleanup.add(key); else selectedCleanup.delete(key); renderUpdateTab('cleanup'); }
-function fakeUpdateAll() { showToast('↻',`正在更新 ${selectedUpdates.size} 个包…`); setTimeout(()=>showToast('✓','更新完成'),2200); }
-function fakeCleanup()   { showToast('🗑',`正在清理 ${selectedCleanup.size} 个旧版本…`); setTimeout(()=>showToast('✓','清理完成，已释放 103.4 MB'),1500); }
+function fakeUpdateAll() { showToast('↻',`正在更新 ${selectedUpdates.size} 个包…`, 'update'); setTimeout(()=>showToast('✓','更新完成', 'update', {detail:'已完成 curl、gh、node 的批量更新。'}),2200); }
+function fakeCleanup()   { showToast('🗑',`正在清理 ${selectedCleanup.size} 个旧版本…`, 'operation'); setTimeout(()=>showToast('✓','清理完成，已释放 103.4 MB', 'operation'),1500); }
 
 // Taps
 function renderTaps() {
@@ -804,8 +1520,8 @@ function renderTaps() {
         <div class="tap-pkg-count">${t.pkgs.toLocaleString()} 个包</div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="btn btn-ghost" onclick="showToast('↻','正在更新 ${t.name}…')">更新</button>
-        ${t.official?'':`<button class="btn btn-danger" onclick="showToast('🗑','已移除 ${t.name}')">移除</button>`}
+        <button class="btn btn-ghost" onclick="showToast('↻','正在更新 ${t.name}…','operation')">更新</button>
+        ${t.official?'':`<button class="btn btn-danger" onclick="showToast('🗑','已移除 ${t.name}','operation')">移除</button>`}
       </div>
     </div>`).join('') + '</div>';
 }
@@ -824,32 +1540,49 @@ function renderServices() {
       <td><input class="cb" type="checkbox" ${ac} onchange="toggleAutostart('${s.name}',this.checked)" title="开机自启动"></td>
       <td style="display:flex;gap:4px;padding:6px 12px;">
         ${s.status==='running'
-          ?`<button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('⏸','正在停止 ${s.name}…')">停止</button>
-            <button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↺','正在重启 ${s.name}…')">重启</button>`
-          :`<button class="btn btn-primary" style="height:26px;font-size:12px;" onclick="showToast('▶','正在启动 ${s.name}…')">启动</button>`
+          ?`<button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('⏸','正在停止 ${s.name}…','service')">停止</button>
+            <button class="btn btn-ghost" style="height:26px;font-size:12px;" onclick="showToast('↺','正在重启 ${s.name}…','service')">重启</button>`
+          :`<button class="btn btn-primary" style="height:26px;font-size:12px;" onclick="showToast('▶','正在启动 ${s.name}…','service')">启动</button>`
         }
       </td>
     </tr>`;
   }).join('');
 }
-function toggleAutostart(name, val) { serviceAutostart[name]=val; showToast(val?'✓':'✗',`${name} 开机自启已${val?'启用':'禁用'}`); }
+function toggleAutostart(name, val) { serviceAutostart[name]=val; showToast(val?'✓':'✗',`${name} 开机自启已${val?'启用':'禁用'}`, 'service'); }
 
 // Brewfile
-function fakeBrewBundle() { showToast('↻','正在执行 brew bundle install…'); setTimeout(()=>showToast('✓','3 个包安装完成'),3000); }
+function fakeBrewBundle() { showToast('↻','正在执行 brew bundle install…', 'operation'); setTimeout(()=>showToast('✓','3 个包安装完成', 'operation'),3000); }
 
 // Toast
-function showToast(icon, msg) {
+function applyToastPosition(pos = 'br') {
   const el = document.getElementById('toaster');
+  if (!el) return;
+  const vertical = pos.startsWith('t') ? 'top' : 'bottom';
+  const horizontal = pos.endsWith('l') ? 'left' : 'right';
+  el.style.top = vertical === 'top' ? '20px' : 'auto';
+  el.style.bottom = vertical === 'bottom' ? '20px' : 'auto';
+  el.style.left = horizontal === 'left' ? '20px' : 'auto';
+  el.style.right = horizontal === 'right' ? '20px' : 'auto';
+}
+
+function showToast(icon, msg, type = 'operation', options = {}) {
+  if (!options.force && !notificationAllowed(type)) return;
+  if (options.history !== false && !options.force) addNotification(type, icon, msg, options.detail || msg, {unread:true});
+  if (!prefValue('showToasts', true)) return;
+  const el = document.getElementById('toaster');
+  applyToastPosition(prefValue('toastPosition', 'br'));
   const t = document.createElement('div');
   t.className = 'toast';
   t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
   el.appendChild(t);
-  setTimeout(()=>{ t.style.cssText='opacity:0;transition:opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 2500);
+  const duration = Number(prefValue('toastDuration', 2500));
+  setTimeout(()=>{ t.style.cssText='opacity:0;transition:opacity 0.3s'; setTimeout(()=>t.remove(),300); }, duration);
 }
 
 // Init
 const ss = localStorage.getItem('gobrew-screen');
 if (ss) { const b=document.querySelector(`.nav-item[data-screen="${ss}"]`); if(b) navigate(b); }
+hydratePrefs();
 renderUpdateTab('upgrades');
 renderTaps();
 renderServices();

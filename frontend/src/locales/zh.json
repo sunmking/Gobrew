@@ -14,7 +14,12 @@
     "noServices": "没有 brew 服务",
     "restartAll": "重启全部"
   },
+  "installed": {
+    "formulae": "Formulae",
+    "casks": "Casks"
+  },
   "taps": {
+    "title": "源",
     "add": "添加 Tap",
     "detail": {
       "lastCommit": "最近提交",
@@ -63,6 +68,31 @@
     "settingsCenter": "配置中心",
     "updateFound": "发现 {count} 个可更新包"
   },
+  "notification": {
+    "title": "通知",
+    "markAllRead": "全部已读",
+    "clear": "清空通知",
+    "empty": "没有符合条件的通知",
+    "centerSection": "通知中心",
+    "filters": {
+      "all": "全部",
+      "update": "更新",
+      "operation": "操作",
+      "service": "服务",
+      "error": "错误"
+    },
+    "events": {
+      "serviceStartedTitle": "{name} 已启动",
+      "serviceStartedMessage": "服务状态变更为运行中",
+      "serviceStoppedTitle": "{name} 已停止",
+      "serviceStoppedMessage": "服务状态变更为已停止",
+      "serviceRestartedTitle": "{name} 已重启",
+      "serviceRestartedMessage": "服务状态已重新加载",
+      "operationInfoTitle": "操作状态更新",
+      "operationErrorTitle": "操作失败",
+      "operationDoneMessage": "请展开日志查看详情"
+    }
+  },
   "sidebarNav": {
     "package": "包管理",
     "resources": "资源",
@@ -107,9 +137,13 @@
     "showAll": "已显示全部 {total} 项"
   },
   "bundlePage": {
+    "title": "Brewfile",
     "subtitle": "从 Brewfile 恢复环境，或将当前安装导出为 Brewfile",
     "pendingInstall": "待安装",
+    "taps": "Taps",
     "brews": "Brews",
+    "casks": "Casks",
+    "restore": "恢复环境",
     "defaultBrewfilePath": "默认 ~/Brewfile",
     "save": "保存",
     "actions": "操作",
@@ -121,6 +155,7 @@
     "commandOutput": "命令输出"
   },
   "servicesPage": {
+    "title": "服务",
     "subtitle": "管理 Homebrew 后台服务的启动、停止和重启",
     "name": "服务名称",
     "user": "用户",
@@ -137,7 +172,13 @@
     "remoteUnavailable": "远程地址不可用",
     "noMatch": "没有匹配的 Tap",
     "detail": "Tap 详情",
-    "pickOne": "选择一个 tap 查看详情"
+    "pickOne": "选择一个 tap 查看详情",
+    "stats": {
+      "taps": "Taps",
+      "formulae": "Formulae",
+      "casks": "Casks",
+      "branch": "分支"
+    }
   },
   "updateCleanup": {
     "title": "更新 & 清理",
@@ -186,6 +227,98 @@
     "resetDefault": "恢复默认",
     "langZh": "中文",
     "langEn": "English"
+  },
+  "settingsPrefs": {
+    "title": "偏好设置",
+    "done": "完成",
+    "language": "界面语言",
+    "langZh": "简体中文",
+    "langEn": "English",
+    "brewfilePath": "默认 Brewfile 位置",
+    "brewfilePathHelp": "用于导入、导出与自动备份",
+    "pathAutoDetectHint": "留空则自动检测 Apple Silicon / Intel 路径",
+    "pathAvailable": "可用{version}",
+    "pathInvalid": "路径不可用",
+    "tabs": {
+      "general": "通用",
+      "appearance": "外观",
+      "updates": "更新",
+      "notifications": "通知",
+      "advanced": "高级"
+    },
+    "sections": {
+      "startup": "启动",
+      "languageAndPath": "语言与路径",
+      "theme": "主题",
+      "displayDensity": "显示密度",
+      "autoCheck": "自动检查",
+      "notifications": "通知",
+      "homebrew": "Homebrew",
+      "dangerZone": "危险区域"
+    },
+    "startup": {
+      "launchAtLogin": "登录时启动 Gobrew",
+      "menuBar": "启动后显示在菜单栏",
+      "restorePage": "恢复上次打开的页面",
+      "restorePageHelp": "使用当前侧边栏页面作为下一次启动入口"
+    },
+    "appearance": {
+      "colorScheme": "颜色方案",
+      "themeLight": "浅色",
+      "themeAuto": "自动",
+      "themeDark": "深色",
+      "accentColor": "强调色",
+      "fontSize": "界面字号",
+      "defaultSizeSuffix": "（默认）",
+      "rowDensity": "表格行密度",
+      "rowDensityCompact": "紧凑",
+      "rowDensityDefault": "默认",
+      "rowDensityComfortable": "宽松"
+    },
+    "updates": {
+      "checkHomebrewUpdates": "自动检查 Homebrew 更新",
+      "frequency": "检查频率",
+      "frequencyStartup": "每次启动",
+      "frequencyDaily": "每天",
+      "frequencyWeekly": "每周",
+      "backupBeforeUpdate": "更新前自动备份 Brewfile",
+      "backupBeforeUpdateHelp": "方便回滚包环境",
+      "cleanupAfterUpdate": "更新后自动清理旧版本"
+    },
+    "notifications": {
+      "packageUpdates": "有可更新的包",
+      "operationsDone": "安装、更新或卸载完成",
+      "serviceChanges": "服务状态变化",
+      "errorChanges": "错误与失败通知",
+      "toastPosition": "Toast 位置",
+      "positionBr": "右下角",
+      "positionBl": "左下角",
+      "positionTr": "右上角",
+      "positionTl": "左上角",
+      "toastDuration": "Toast 显示时长",
+      "toast2s": "2 秒",
+      "toast25s": "2.5 秒",
+      "toast4s": "4 秒",
+      "showToasts": "显示 Toast 提示",
+      "keepHistory": "保留通知记录",
+      "centerSection": "通知中心"
+    },
+    "advanced": {
+      "brewBinary": "brew 可执行文件",
+      "brewBinaryPlaceholder": "/opt/homebrew/bin/brew",
+      "maxConcurrency": "最大并发任务数",
+      "debugLog": "调试日志",
+      "debugLogHelp": "输出到 ~/Library/Logs/Gobrew",
+      "resetAll": "重置所有偏好设置",
+      "resetAllHelp": "不会影响已安装的包",
+      "reset": "重置"
+    },
+    "messages": {
+      "saved": "偏好已保存",
+      "saveFailed": "偏好保存失败",
+      "reset": "偏好设置已重置",
+      "applied": "偏好设置已应用"
+    }
   },
   "packageDetail": {
     "dependencies": "依赖项",

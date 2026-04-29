@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { Events } from '@wailsio/runtime'
 import type { LogLine } from '@/types/brew'
+import { useNotificationStore } from '@/stores/notification'
+import i18n from '@/locales'
 
 let lineId = 1
 const ERROR_RE = /\b(error|failed|failure|panic)\b/i
@@ -12,6 +14,7 @@ export const useLogStore = defineStore('log', {
     activeSessions: 0,
     stopFns: [] as Array<() => void>,
     maxLines: 1000,
+    toastDurationMs: 2600,
     operationStatus: 'idle' as 'idle' | 'running' | 'success' | 'error' | 'info',
     operationMessage: '',
     clearTimer: null as ReturnType<typeof setTimeout> | null,
@@ -22,6 +25,9 @@ export const useLogStore = defineStore('log', {
       if (this.lines.length > this.maxLines) {
         this.lines.splice(0, this.lines.length - this.maxLines)
       }
+    },
+    setToastDuration(ms: number) {
+      this.toastDurationMs = Math.max(1000, Math.floor(ms))
     },
     setOperation(status: 'idle' | 'running' | 'success' | 'error' | 'info', message = '') {
       this.operationStatus = status
@@ -44,15 +50,18 @@ export const useLogStore = defineStore('log', {
     },
     markSuccess(message = '') {
       this.setOperation('success', message)
-      this.scheduleClear(2600)
+      this.scheduleClear(this.toastDurationMs)
+      if (message) useNotificationStore().push('operation', '✓', message, i18n.global.t('notification.events.operationDoneMessage'))
     },
     markError(message = '') {
       this.setOperation('error', message)
-      this.scheduleClear(5200)
+      this.scheduleClear(Math.round(this.toastDurationMs * 2))
+      if (message) useNotificationStore().push('error', '!', i18n.global.t('notification.events.operationErrorTitle'), message)
     },
     markInfo(message = '') {
       this.setOperation('info', message)
-      this.scheduleClear(3200)
+      this.scheduleClear(this.toastDurationMs)
+      if (message) useNotificationStore().push('operation', 'ℹ', i18n.global.t('notification.events.operationInfoTitle'), message)
     },
     clearOperationStatus() {
       if (this.clearTimer) {

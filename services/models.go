@@ -131,13 +131,32 @@ type CleanupResult struct {
 }
 
 type AppConfig struct {
-	Language             string `json:"language"`
-	Theme                string `json:"theme"`
-	BrewPath             string `json:"brew_path"`
-	BrewfilePath         string `json:"brewfile_path"`
-	AutoUpdateInterval   string `json:"auto_update_interval"`
-	LogMaxLines          int    `json:"log_max_lines"`
-	CheckUpdatesOnLaunch bool   `json:"check_updates_on_launch"`
+	Language                string `json:"language"`
+	Theme                   string `json:"theme"`
+	BrewPath                string `json:"brew_path"`
+	BrewfilePath            string `json:"brewfile_path"`
+	AutoUpdateInterval      string `json:"auto_update_interval"`
+	LogMaxLines             int    `json:"log_max_lines"`
+	CheckUpdatesOnLaunch    bool   `json:"check_updates_on_launch"`
+	LaunchAtLogin           bool   `json:"launch_at_login"`
+	ShowInMenuBar           bool   `json:"show_in_menu_bar"`
+	RestoreLastPage         bool   `json:"restore_last_page"`
+	LastPagePath            string `json:"last_page_path"`
+	BackupBeforeUpdate      bool   `json:"backup_before_update"`
+	CleanupAfterUpdate      bool   `json:"cleanup_after_update"`
+	NotifyUpdates           bool   `json:"notify_updates"`
+	NotifyOperations        bool   `json:"notify_operations"`
+	NotifyServices          bool   `json:"notify_services"`
+	NotifyErrors            bool   `json:"notify_errors"`
+	ShowToasts              bool   `json:"show_toasts"`
+	ToastPosition           string `json:"toast_position"`
+	KeepNotificationHistory bool   `json:"keep_notification_history"`
+	ToastDurationMs         int    `json:"toast_duration_ms"`
+	MaxConcurrency          int    `json:"max_concurrency"`
+	DebugLog                bool   `json:"debug_log"`
+	AccentHue               int    `json:"accent_hue"`
+	UIFontSize              int    `json:"ui_font_size"`
+	RowDensity              string `json:"row_density"`
 }
 
 type BrewPathValidation struct {

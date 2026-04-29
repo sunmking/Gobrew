@@ -23,7 +23,6 @@ func main() {
 	serviceManager := services.NewServiceManager(nil)
 	bundleService := services.NewBundleService(nil)
 	configService := services.NewConfigService()
-
 	app := application.New(application.Options{
 		Name:        "Gobrew",
 		Description: "A Homebrew GUI Client for macOS",
@@ -39,6 +38,7 @@ func main() {
 			Handler: application.AssetFileServerFS(assets),
 		},
 		Mac: application.MacOptions{
+			ActivationPolicy: application.ActivationPolicyRegular,
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
@@ -48,7 +48,7 @@ func main() {
 	serviceManager.SetApp(app)
 	bundleService.SetApp(app)
 
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
+	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Gobrew",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
@@ -61,6 +61,38 @@ func main() {
 		Height:           700,
 		MinWidth:         800,
 		MinHeight:        500,
+	})
+
+	var tray *application.SystemTray
+	if !services.IsDevRuntime() {
+		tray = app.SystemTray.New()
+		tray.SetLabel("Gobrew")
+		tray.SetTooltip("Gobrew")
+		menu := app.NewMenu()
+		menu.Add("Show Gobrew").OnClick(func(*application.Context) {
+			application.InvokeAsync(func() {
+				window.UnMinimise()
+				window.Restore()
+				window.Show()
+				window.Focus()
+			})
+		})
+		menu.AddSeparator()
+		menu.Add("Quit").OnClick(func(*application.Context) {
+			app.Quit()
+		})
+		tray.SetMenu(menu)
+		tray.Run()
+	}
+	configService.SetMenuBarApplier(func(enabled bool) {
+		if tray == nil {
+			return
+		}
+		if enabled {
+			tray.Show()
+			return
+		}
+		tray.Hide()
 	})
 
 	if err := app.Run(); err != nil {

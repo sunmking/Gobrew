@@ -3,7 +3,7 @@ import { computed, onMounted, ref, type Component } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { Archive, Boxes, FileText, RefreshCw, Server } from 'lucide-vue-next'
-import { Capabilities } from '../../../bindings/changeme/services/brewservice.js'
+import { Capabilities } from '../../../bindings/changeme/services/brewservice'
 
 const route = useRoute()
 const { t } = useI18n()

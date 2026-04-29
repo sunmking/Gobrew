@@ -22,7 +22,7 @@ onMounted(servicesStore.fetchServices)
 <template>
   <section class="page">
     <div class="content-header">
-      <h1 class="content-title">{{ t('services.title') }}</h1>
+      <h1 class="content-title">{{ t('servicesPage.title') }}</h1>
       <p class="content-subtitle">{{ t('servicesPage.subtitle') }}</p>
     </div>
     <div class="toolbar">

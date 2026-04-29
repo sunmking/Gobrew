@@ -46,10 +46,10 @@ onMounted(tapsStore.fetchTaps)
     </div>
     <div class="content-body">
       <div class="stat-grid">
-        <StatCard label="Taps" :value="tapsStore.taps.length" :sub="t('tapsPage.configuredRepo')" />
-        <StatCard label="Formulae" :value="detail?.formula_names?.length || 0" :sub="t('tapsPage.selectedTap')" tone="accent" />
-        <StatCard label="Casks" :value="detail?.cask_tokens?.length || 0" :sub="t('tapsPage.selectedTap')" />
-        <StatCard label="Branch" :value="detail?.branch || '-'" :sub="t('tapsPage.selectedTap')" />
+        <StatCard :label="t('tapsPage.stats.taps')" :value="tapsStore.taps.length" :sub="t('tapsPage.configuredRepo')" />
+        <StatCard :label="t('tapsPage.stats.formulae')" :value="detail?.formula_names?.length || 0" :sub="t('tapsPage.selectedTap')" tone="accent" />
+        <StatCard :label="t('tapsPage.stats.casks')" :value="detail?.cask_tokens?.length || 0" :sub="t('tapsPage.selectedTap')" />
+        <StatCard :label="t('tapsPage.stats.branch')" :value="detail?.branch || '-'" :sub="t('tapsPage.selectedTap')" />
       </div>
       <div style="display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:16px;">
         <div>
@@ -69,8 +69,8 @@ onMounted(tapsStore.fetchTaps)
           <div class="detail-card-title">{{ t('tapsPage.detail') }}</div>
           <template v-if="detail">
             <div class="meta-row"><span class="meta-label">{{ t('table.name') }}</span><span class="meta-value">{{ detail.name }}</span></div>
-            <div class="meta-row"><span class="meta-label">{{ t('installed.formulae') }}</span><span class="meta-value">{{ detail.formula_names.length }}</span></div>
-            <div class="meta-row"><span class="meta-label">{{ t('installed.casks') }}</span><span class="meta-value">{{ detail.cask_tokens.length }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('tapsPage.stats.formulae') }}</span><span class="meta-value">{{ detail.formula_names.length }}</span></div>
+            <div class="meta-row"><span class="meta-label">{{ t('tapsPage.stats.casks') }}</span><span class="meta-value">{{ detail.cask_tokens.length }}</span></div>
             <div class="meta-row"><span class="meta-label">{{ t('taps.detail.lastCommit') }}</span><span class="meta-value">{{ detail.last_commit || '-' }}</span></div>
           </template>
           <div v-else class="content-subtitle">{{ t('tapsPage.pickOne') }}</div>

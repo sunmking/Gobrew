@@ -17,6 +17,25 @@ export class AppConfig {
     "auto_update_interval": string;
     "log_max_lines": number;
     "check_updates_on_launch": boolean;
+    "launch_at_login": boolean;
+    "show_in_menu_bar": boolean;
+    "restore_last_page": boolean;
+    "last_page_path": string;
+    "backup_before_update": boolean;
+    "cleanup_after_update": boolean;
+    "notify_updates": boolean;
+    "notify_operations": boolean;
+    "notify_services": boolean;
+    "notify_errors": boolean;
+    "show_toasts": boolean;
+    "toast_position": string;
+    "keep_notification_history": boolean;
+    "toast_duration_ms": number;
+    "max_concurrency": number;
+    "debug_log": boolean;
+    "accent_hue": number;
+    "ui_font_size": number;
+    "row_density": string;
 
     /** Creates a new AppConfig instance. */
     constructor($$source: Partial<AppConfig> = {}) {
@@ -40,6 +59,63 @@ export class AppConfig {
         }
         if (!("check_updates_on_launch" in $$source)) {
             this["check_updates_on_launch"] = false;
+        }
+        if (!("launch_at_login" in $$source)) {
+            this["launch_at_login"] = false;
+        }
+        if (!("show_in_menu_bar" in $$source)) {
+            this["show_in_menu_bar"] = false;
+        }
+        if (!("restore_last_page" in $$source)) {
+            this["restore_last_page"] = false;
+        }
+        if (!("last_page_path" in $$source)) {
+            this["last_page_path"] = "";
+        }
+        if (!("backup_before_update" in $$source)) {
+            this["backup_before_update"] = false;
+        }
+        if (!("cleanup_after_update" in $$source)) {
+            this["cleanup_after_update"] = false;
+        }
+        if (!("notify_updates" in $$source)) {
+            this["notify_updates"] = false;
+        }
+        if (!("notify_operations" in $$source)) {
+            this["notify_operations"] = false;
+        }
+        if (!("notify_services" in $$source)) {
+            this["notify_services"] = false;
+        }
+        if (!("notify_errors" in $$source)) {
+            this["notify_errors"] = false;
+        }
+        if (!("show_toasts" in $$source)) {
+            this["show_toasts"] = false;
+        }
+        if (!("toast_position" in $$source)) {
+            this["toast_position"] = "";
+        }
+        if (!("keep_notification_history" in $$source)) {
+            this["keep_notification_history"] = false;
+        }
+        if (!("toast_duration_ms" in $$source)) {
+            this["toast_duration_ms"] = 0;
+        }
+        if (!("max_concurrency" in $$source)) {
+            this["max_concurrency"] = 0;
+        }
+        if (!("debug_log" in $$source)) {
+            this["debug_log"] = false;
+        }
+        if (!("accent_hue" in $$source)) {
+            this["accent_hue"] = 0;
+        }
+        if (!("ui_font_size" in $$source)) {
+            this["ui_font_size"] = 0;
+        }
+        if (!("row_density" in $$source)) {
+            this["row_density"] = "";
         }
 
         Object.assign(this, $$source);

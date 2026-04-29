@@ -2,35 +2,20 @@
 import { Bell, Moon, Settings, Sun } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { useLogStore } from '@/stores/log'
+import { useNotificationStore } from '@/stores/notification'
 import { useSettingsStore } from '@/stores/settings'
-import { useUpdateStore } from '@/stores/update'
+import { useUiStore } from '@/stores/ui'
 
-const router = useRouter()
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
-const updateStore = useUpdateStore()
-const logStore = useLogStore()
+const uiStore = useUiStore()
+const notificationStore = useNotificationStore()
 const isDark = computed(() => settingsStore.theme === 'dark')
 
 async function toggleTheme() {
   await settingsStore.setTheme(isDark.value ? 'light' : 'dark')
 }
 
-async function checkUpdates() {
-  try {
-    await updateStore.forceRefresh()
-    const total = updateStore.formulae.length + updateStore.casks.length
-    if (total === 0) {
-      logStore.markInfo(t('update.upToDate'))
-      return
-    }
-    logStore.markInfo(t('titleBar.updateFound', { count: total }))
-  } catch (error: any) {
-    logStore.markError(error?.message || t('messages.operationFailed'))
-  }
-}
 </script>
 
 <template>
@@ -41,12 +26,24 @@ async function checkUpdates() {
         <Moon v-if="!isDark" :size="14" />
         <Sun v-else :size="14" />
       </button>
-      <button class="btn-icon" type="button" :title="t('titleBar.notifications')" @click="checkUpdates">
+      <button class="btn-icon notif-button" type="button" :title="t('titleBar.notifications')" @click.stop="notificationStore.toggle()">
         <Bell :size="14" />
+        <span class="notif-dot" :class="{ hidden: notificationStore.unreadCount === 0 }" />
       </button>
-      <button class="btn-icon" type="button" :title="t('titleBar.settingsCenter')" @click="router.push('/settings')">
+      <button class="btn-icon" type="button" :title="t('titleBar.settingsCenter')" @click="uiStore.openSettings()">
         <Settings :size="14" />
       </button>
     </div>
   </header>
 </template>
+
+<style scoped>
+.notif-button { position: relative; }
+.notif-dot {
+  position:absolute; top:5px; right:5px;
+  width:8px; height:8px;
+  border-radius:999px; background:var(--danger);
+  box-shadow:0 0 0 2px var(--surface);
+}
+.notif-dot.hidden { display:none; }
+</style>

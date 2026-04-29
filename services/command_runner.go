@@ -5,7 +5,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +21,9 @@ var (
 	brewPathErr  error
 	brewPathMu   sync.RWMutex
 	brewPathUser string
+	runtimeMu    sync.Mutex
+	brewSem      chan struct{}
+	debugLog     bool
 )
 
 func resolveBrewPath() (string, error) {
@@ -65,26 +70,109 @@ func SetBrewPathOverride(path string) {
 	brewPathUser = strings.TrimSpace(path)
 }
 
+func SetCommandRuntimeOptions(maxConcurrency int, enableDebugLog bool) {
+	if maxConcurrency < 1 {
+		maxConcurrency = 1
+	}
+	if maxConcurrency > 16 {
+		maxConcurrency = 16
+	}
+	runtimeMu.Lock()
+	defer runtimeMu.Unlock()
+	if brewSem == nil || cap(brewSem) != maxConcurrency {
+		brewSem = make(chan struct{}, maxConcurrency)
+	}
+	debugLog = enableDebugLog
+}
+
+func acquireBrewSlot(ctx context.Context) error {
+	runtimeMu.Lock()
+	if brewSem == nil {
+		brewSem = make(chan struct{}, 4)
+	}
+	sem := brewSem
+	runtimeMu.Unlock()
+	select {
+	case sem <- struct{}{}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func releaseBrewSlot() {
+	runtimeMu.Lock()
+	sem := brewSem
+	runtimeMu.Unlock()
+	if sem == nil {
+		return
+	}
+	select {
+	case <-sem:
+	default:
+	}
+}
+
+func isDebugLogEnabled() bool {
+	runtimeMu.Lock()
+	defer runtimeMu.Unlock()
+	return debugLog
+}
+
+func writeDebugLog(line string) {
+	if !isDebugLogEnabled() {
+		return
+	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+	logDir := filepath.Join(homeDir, "Library", "Logs", "Gobrew")
+	if mkErr := os.MkdirAll(logDir, 0755); mkErr != nil {
+		return
+	}
+	logPath := filepath.Join(logDir, "gobrew-debug.log")
+	file, openErr := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if openErr != nil {
+		return
+	}
+	defer file.Close()
+	_, _ = file.WriteString(time.Now().Format(time.RFC3339) + " " + line + "\n")
+}
+
 func runBrewCommand(ctx context.Context, args ...string) (string, string, error) {
+	if err := acquireBrewSlot(ctx); err != nil {
+		return "", err.Error(), err
+	}
+	defer releaseBrewSlot()
 	brewExec, err := resolveBrewPath()
 	if err != nil {
 		return "", err.Error(), err
 	}
 
+	writeDebugLog(fmt.Sprintf("cmd: %s %s", brewExec, strings.Join(args, " ")))
 	cmd := exec.CommandContext(ctx, brewExec, args...)
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	err = cmd.Run()
+	if err != nil {
+		writeDebugLog(fmt.Sprintf("cmd err: %v", err))
+	}
 	return stdout.String(), stderr.String(), err
 }
 
 func runBrewCommandWithEvents(ctx context.Context, app *application.App, args ...string) (string, string, error) {
+	if err := acquireBrewSlot(ctx); err != nil {
+		return "", err.Error(), err
+	}
+	defer releaseBrewSlot()
 	brewExec, err := resolveBrewPath()
 	if err != nil {
 		return "", err.Error(), err
 	}
 
+	writeDebugLog(fmt.Sprintf("cmd(events): %s %s", brewExec, strings.Join(args, " ")))
 	cmd := exec.CommandContext(ctx, brewExec, args...)
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -127,6 +215,7 @@ func streamPipe(pipe interface{ Read([]byte) (int, error) }, dst *strings.Builde
 		line := scanner.Text()
 		dst.WriteString(line)
 		dst.WriteString("\n")
+		writeDebugLog(line)
 		if app != nil {
 			app.Event.Emit("brew-output", line)
 		}

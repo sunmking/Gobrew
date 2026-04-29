@@ -68,14 +68,14 @@ async function updatePath(value: string) {
 <template>
   <section class="page">
     <div class="content-header">
-      <h1 class="content-title">{{ t('bundle.title') }}</h1>
+      <h1 class="content-title">{{ t('bundlePage.title') }}</h1>
       <p class="content-subtitle">{{ t('bundlePage.subtitle') }}</p>
     </div>
     <div class="content-body">
       <div class="stat-grid">
-        <StatCard :label="t('taps.title')" :value="stats.taps" />
+        <StatCard :label="t('bundlePage.taps')" :value="stats.taps" />
         <StatCard :label="t('bundlePage.brews')" :value="stats.brews" />
-        <StatCard :label="t('installed.casks')" :value="stats.casks" />
+        <StatCard :label="t('bundlePage.casks')" :value="stats.casks" />
         <StatCard :label="t('bundlePage.pendingInstall')" :value="missing.length" tone="accent" />
       </div>
       <div style="display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px;">
@@ -91,7 +91,7 @@ async function updatePath(value: string) {
           <div class="detail-card">
             <div class="detail-card-title">{{ t('bundlePage.actions') }}</div>
             <div style="display:flex; flex-direction:column; gap:8px;">
-              <BrewButton variant="primary" @click="run('brew bundle install', () => bundleStore.restore(path || undefined))"><Download :size="14" />{{ t('bundle.restore') }}</BrewButton>
+              <BrewButton variant="primary" @click="run('brew bundle install', () => bundleStore.restore(path || undefined))"><Download :size="14" />{{ t('bundlePage.restore') }}</BrewButton>
               <BrewButton @click="dump"><FileDown :size="14" />{{ t('bundlePage.exportFromEnv') }}</BrewButton>
               <BrewButton @click="bundleStore.check(path || undefined)"><Clipboard :size="14" />{{ t('bundlePage.checkDiff') }}</BrewButton>
               <BrewButton variant="danger" @click="run('brew bundle cleanup', () => bundleStore.cleanup(path || undefined, true))"><Trash2 :size="14" />{{ t('bundlePage.cleanupExtra') }}</BrewButton>

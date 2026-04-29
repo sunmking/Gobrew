@@ -13,6 +13,10 @@ export function ConfigPath(): $CancellablePromise<string> {
     return $Call.ByID(423829810);
 }
 
+export function EffectiveBrewPath(): $CancellablePromise<string> {
+    return $Call.ByID(2950353535);
+}
+
 export function Export(): $CancellablePromise<string> {
     return $Call.ByID(3973180209);
 }
@@ -41,10 +45,18 @@ export function Save(input: $models.AppConfig): $CancellablePromise<$models.AppC
     });
 }
 
+export function SetMenuBarApplier(applier: any): $CancellablePromise<void> {
+    return $Call.ByID(358247410, applier);
+}
+
 export function ValidateBrewPath(path: string): $CancellablePromise<$models.BrewPathValidation> {
     return $Call.ByID(2235763718, path).then(($result: any) => {
         return $$createType1($result);
     });
+}
+
+export function ValidateStartupConfig(): $CancellablePromise<string> {
+    return $Call.ByID(1805686484);
 }
 
 // Private type creation functions

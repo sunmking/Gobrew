@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import * as ServiceManager from '../../bindings/changeme/services/servicemanager.js'
 import type { BrewService } from '@/types/brew'
 import i18n from '@/locales'
+import { useNotificationStore } from '@/stores/notification'
+import { useSettingsStore } from '@/stores/settings'
 
 export const useServicesStore = defineStore('services', {
   state: () => ({
@@ -26,14 +28,41 @@ export const useServicesStore = defineStore('services', {
     async start(name: string) {
       await ServiceManager.Start(name)
       await this.fetchServices()
+      const settings = useSettingsStore()
+      if (settings.notifyServices) {
+        useNotificationStore().push(
+          'service',
+          '▶',
+          i18n.global.t('notification.events.serviceStartedTitle', { name }),
+          i18n.global.t('notification.events.serviceStartedMessage'),
+        )
+      }
     },
     async stop(name: string) {
       await ServiceManager.Stop(name)
       await this.fetchServices()
+      const settings = useSettingsStore()
+      if (settings.notifyServices) {
+        useNotificationStore().push(
+          'service',
+          '⏸',
+          i18n.global.t('notification.events.serviceStoppedTitle', { name }),
+          i18n.global.t('notification.events.serviceStoppedMessage'),
+        )
+      }
     },
     async restart(name: string) {
       await ServiceManager.Restart(name)
       await this.fetchServices()
+      const settings = useSettingsStore()
+      if (settings.notifyServices) {
+        useNotificationStore().push(
+          'service',
+          '↺',
+          i18n.global.t('notification.events.serviceRestartedTitle', { name }),
+          i18n.global.t('notification.events.serviceRestartedMessage'),
+        )
+      }
     },
     async startAll() {
       await ServiceManager.StartAll()

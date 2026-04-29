@@ -14,7 +14,12 @@
     "noServices": "No brew services",
     "restartAll": "Restart All"
   },
+  "installed": {
+    "formulae": "Formulae",
+    "casks": "Casks"
+  },
   "taps": {
+    "title": "Taps",
     "add": "Add Tap",
     "detail": {
       "lastCommit": "Last Commit",
@@ -63,6 +68,31 @@
     "settingsCenter": "Settings Center",
     "updateFound": "{count} package updates available"
   },
+  "notification": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "clear": "Clear notifications",
+    "empty": "No notifications match this filter",
+    "centerSection": "Notification Center",
+    "filters": {
+      "all": "All",
+      "update": "Update",
+      "operation": "Operation",
+      "service": "Service",
+      "error": "Error"
+    },
+    "events": {
+      "serviceStartedTitle": "{name} started",
+      "serviceStartedMessage": "Service status changed to running",
+      "serviceStoppedTitle": "{name} stopped",
+      "serviceStoppedMessage": "Service status changed to stopped",
+      "serviceRestartedTitle": "{name} restarted",
+      "serviceRestartedMessage": "Service state reloaded",
+      "operationInfoTitle": "Operation update",
+      "operationErrorTitle": "Operation failed",
+      "operationDoneMessage": "Expand logs for more details"
+    }
+  },
   "sidebarNav": {
     "package": "Package",
     "resources": "Resources",
@@ -107,9 +137,13 @@
     "showAll": "Showing all {total} items"
   },
   "bundlePage": {
+    "title": "Brewfile",
     "subtitle": "Restore from Brewfile, or export current environment to Brewfile",
     "pendingInstall": "Pending",
+    "taps": "Taps",
     "brews": "Brews",
+    "casks": "Casks",
+    "restore": "Restore Environment",
     "defaultBrewfilePath": "Default ~/Brewfile",
     "save": "Save",
     "actions": "Actions",
@@ -121,6 +155,7 @@
     "commandOutput": "Command Output"
   },
   "servicesPage": {
+    "title": "Services",
     "subtitle": "Manage start, stop, and restart actions for Homebrew background services",
     "name": "Service",
     "user": "User",
@@ -137,7 +172,13 @@
     "remoteUnavailable": "Remote unavailable",
     "noMatch": "No matching tap",
     "detail": "Tap Detail",
-    "pickOne": "Select a tap to view details"
+    "pickOne": "Select a tap to view details",
+    "stats": {
+      "taps": "Taps",
+      "formulae": "Formulae",
+      "casks": "Casks",
+      "branch": "Branch"
+    }
   },
   "updateCleanup": {
     "title": "Update & Cleanup",
@@ -186,6 +227,98 @@
     "resetDefault": "Reset to Default",
     "langZh": "中文",
     "langEn": "English"
+  },
+  "settingsPrefs": {
+    "title": "Preferences",
+    "done": "Done",
+    "language": "Display language",
+    "langZh": "简体中文",
+    "langEn": "English",
+    "brewfilePath": "Default Brewfile location",
+    "brewfilePathHelp": "Used for import, export, and auto backup",
+    "pathAutoDetectHint": "Leave empty to auto-detect Apple Silicon / Intel path",
+    "pathAvailable": "Available{version}",
+    "pathInvalid": "Path unavailable",
+    "tabs": {
+      "general": "General",
+      "appearance": "Appearance",
+      "updates": "Updates",
+      "notifications": "Notifications",
+      "advanced": "Advanced"
+    },
+    "sections": {
+      "startup": "Startup",
+      "languageAndPath": "Language & Path",
+      "theme": "Theme",
+      "displayDensity": "Display Density",
+      "autoCheck": "Auto Check",
+      "notifications": "Notifications",
+      "homebrew": "Homebrew",
+      "dangerZone": "Danger Zone"
+    },
+    "startup": {
+      "launchAtLogin": "Launch Gobrew at login",
+      "menuBar": "Show in menu bar after launch",
+      "restorePage": "Restore last open page",
+      "restorePageHelp": "Use current sidebar page as next startup entry"
+    },
+    "appearance": {
+      "colorScheme": "Color scheme",
+      "themeLight": "Light",
+      "themeAuto": "Auto",
+      "themeDark": "Dark",
+      "accentColor": "Accent color",
+      "fontSize": "UI font size",
+      "defaultSizeSuffix": " (default)",
+      "rowDensity": "Table row density",
+      "rowDensityCompact": "Compact",
+      "rowDensityDefault": "Default",
+      "rowDensityComfortable": "Comfortable"
+    },
+    "updates": {
+      "checkHomebrewUpdates": "Automatically check Homebrew updates",
+      "frequency": "Check frequency",
+      "frequencyStartup": "On every launch",
+      "frequencyDaily": "Daily",
+      "frequencyWeekly": "Weekly",
+      "backupBeforeUpdate": "Auto backup Brewfile before update",
+      "backupBeforeUpdateHelp": "Makes package environment rollback easier",
+      "cleanupAfterUpdate": "Auto cleanup old versions after update"
+    },
+    "notifications": {
+      "packageUpdates": "Packages with updates available",
+      "operationsDone": "Install, update, or uninstall completed",
+      "serviceChanges": "Service status changes",
+      "errorChanges": "Error and failure notifications",
+      "toastPosition": "Toast position",
+      "positionBr": "Bottom right",
+      "positionBl": "Bottom left",
+      "positionTr": "Top right",
+      "positionTl": "Top left",
+      "toastDuration": "Toast display duration",
+      "toast2s": "2 sec",
+      "toast25s": "2.5 sec",
+      "toast4s": "4 sec",
+      "showToasts": "Show toast messages",
+      "keepHistory": "Keep notification history",
+      "centerSection": "Notification Center"
+    },
+    "advanced": {
+      "brewBinary": "brew executable",
+      "brewBinaryPlaceholder": "/opt/homebrew/bin/brew",
+      "maxConcurrency": "Max concurrent tasks",
+      "debugLog": "Debug logs",
+      "debugLogHelp": "Output to ~/Library/Logs/Gobrew",
+      "resetAll": "Reset all preferences",
+      "resetAllHelp": "Installed packages are not affected",
+      "reset": "Reset"
+    },
+    "messages": {
+      "saved": "Preferences saved",
+      "saveFailed": "Failed to save preferences",
+      "reset": "Preferences reset",
+      "applied": "Preferences applied"
+    }
   },
   "packageDetail": {
     "dependencies": "Dependencies",
