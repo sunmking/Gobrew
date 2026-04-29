@@ -150,8 +150,8 @@ tasks:
       - ln -s /Applications "{{.BIN_DIR}}/dmg-root/Applications"
       - cp "build/darwin/DMG_INSTALL_README.txt" "{{.BIN_DIR}}/dmg-root/INSTALL.txt"
       - rm -f "{{.BIN_DIR}}/{{.DMG_NAME}}"
-      - hdiutil create -volname "{{.APP_NAME}}" -srcfolder "{{.BIN_DIR}}/dmg-root" -ov -format UDZO "{{.BIN_DIR}}/{{.DMG_NAME}}"
-      - echo "Created DMG: {{.BIN_DIR}}/{{.DMG_NAME}}"
+      - 'hdiutil create -volname "{{.APP_NAME}}" -srcfolder "{{.BIN_DIR}}/dmg-root" -ov -format UDZO "{{.BIN_DIR}}/{{.DMG_NAME}}"'
+      - 'echo "Created DMG: {{.BIN_DIR}}/{{.DMG_NAME}}"'
 
 
   create:app:bundle:
